@@ -25,8 +25,8 @@ typedef struct {
     PyObject *weakreflist;
 
     cdbtype_t *main;  /* CDB instance, we're attached to */
-    struct cdb copy;  /* cdb struct */
-    cdb_ref_t eod, pos;
+    cdb32_t copy32;  /* cdb struct */
+    cdb32_ref_t eod, pos;
 } cdbkeyiter_t;
 
 
@@ -34,47 +34,47 @@ typedef struct {
 
 #define CDBKeyIterType_iter PyObject_SelfIter
 
-#define CDB_READ_NUM(pos) do {                                  \
-    if (-1 == cdb_read(&self->copy, buf, CDB_NUM_SIZE, (pos))) { \
-        PyErr_SetFromErrno(PyExc_IOError);                      \
-        return NULL;                                            \
-    }                                                           \
-    (pos) += CDB_NUM_SIZE;                                      \
+#define CDB32_READ_NUM(pos) do {                                       \
+    if (-1 == cdb32_read(&self->copy32, buf, CDB32_NUM_SIZE, (pos))) { \
+        PyErr_SetFromErrno(PyExc_IOError);                             \
+        return NULL;                                                   \
+    }                                                                  \
+    (pos) += CDB32_NUM_SIZE;                                           \
 } while (0)
 
 static PyObject *
 CDBKeyIterType_iternext(cdbkeyiter_t *self)
 {
-    char buf[CDB_NUM_SIZE];
+    char buf[CDB32_NUM_SIZE];
     PyObject *result;
     Py_ssize_t result_size;
-    cdb_ref_t klen, dlen;
+    cdb32_ref_t klen, dlen;
 
-    if (!self->main || !cdbx_get_cdb(self->main))
+    if (!self->main || !cdbx_get_cdb32(self->main))
         return cdbx_raise_closed();
 
     result = NULL;
     while (self->pos < self->eod) {
-        CDB_READ_NUM(self->pos);
-        cdb_num_unpack(buf, &klen);
-        CDB_READ_NUM(self->pos);
-        cdb_num_unpack(buf, &dlen);
+        CDB32_READ_NUM(self->pos);
+        cdb32_num_unpack(buf, &klen);
+        CDB32_READ_NUM(self->pos);
+        cdb32_num_unpack(buf, &dlen);
         result_size = (Py_ssize_t) klen;
-        if ((cdb_ref_t)result_size != klen) {
+        if ((cdb32_ref_t)result_size != klen) {
             PyErr_SetString(PyExc_OverflowError, "Key too long");
             return NULL;
         }
         if (!(result = PyBytes_FromStringAndSize(NULL, result_size)))
             return NULL;
 
-        if (-1 == cdb_read(&self->copy, PyBytes_AS_STRING(result), klen,
-                           self->pos)) {
+        if (-1 == cdb32_read(&self->copy32, PyBytes_AS_STRING(result), klen,
+                             self->pos)) {
             PyErr_SetFromErrno(PyExc_IOError);
             goto error;
         }
         self->pos += klen;
 
-        switch (cdb_find(&self->copy, PyBytes_AS_STRING(result), klen)) {
+        switch (cdb32_find(&self->copy32, PyBytes_AS_STRING(result), klen)) {
         case -1:
             PyErr_SetFromErrno(PyExc_IOError);
             goto error;
@@ -84,7 +84,7 @@ CDBKeyIterType_iternext(cdbkeyiter_t *self)
             goto error;
 
         default:
-            if (cdb_datapos(&self->copy) != self->pos) {
+            if (cdb32_datapos(&self->copy32) != self->pos) {
                 self->pos += dlen;
                 Py_DECREF(result);
                 result = NULL;
@@ -103,7 +103,7 @@ error:
     return NULL;
 }
 
-#undef CDB_READ_NUM
+#undef CDB32_READ_NUM
 
 static int
 CDBKeyIterType_traverse(cdbkeyiter_t *self, visitproc visit, void *arg)
@@ -159,12 +159,12 @@ PyTypeObject CDBKeyIterType = {
     (iternextfunc)CDBKeyIterType_iternext               /* tp_iternext */
 };
 
-#define CDB_READ_NUM(pos) do {                                   \
-    if (-1 == cdb_read(&self->copy, buf, CDB_NUM_SIZE, (pos))) { \
-        PyErr_SetFromErrno(PyExc_IOError);                       \
-        goto error;                                              \
-    }                                                            \
-    pos += CDB_NUM_SIZE;                                         \
+#define CDB32_READ_NUM(pos) do {                                       \
+    if (-1 == cdb32_read(&self->copy32, buf, CDB32_NUM_SIZE, (pos))) { \
+        PyErr_SetFromErrno(PyExc_IOError);                             \
+        goto error;                                                    \
+    }                                                                  \
+    pos += CDB32_NUM_SIZE;                                             \
 } while (0)
 
 /*
@@ -173,28 +173,28 @@ PyTypeObject CDBKeyIterType = {
 PyObject *
 cdbx_keyiter_new(cdbtype_t *cdb)
 {
-    char buf[CDB_NUM_SIZE];
+    char buf[CDB32_NUM_SIZE];
     cdbkeyiter_t *self;
-    struct cdb *origin;
+    cdb32_t *origin;
 
     if (!(self = GENERIC_ALLOC(&CDBKeyIterType)))
         return NULL;
 
     self->main = NULL;
-    if (!(origin = cdbx_get_cdb(cdb)))
+    if (!(origin = cdbx_get_cdb32(cdb)))
         return cdbx_raise_closed();
 
-    self->copy.map = origin->map;
-    self->copy.fd = origin->fd;
-    self->copy.size = origin->size;
+    self->copy32.map = origin->map;
+    self->copy32.fd = origin->fd;
+    self->copy32.size = origin->size;
 
     Py_INCREF((PyObject *)cdb);
     self->main = cdb;
 
     self->pos = 0;
-    CDB_READ_NUM(self->pos);
-    cdb_num_unpack(buf, &self->eod);
-    while (self->pos < CDB_TABLE_SIZE) CDB_READ_NUM(self->pos);
+    CDB32_READ_NUM(self->pos);
+    cdb32_num_unpack(buf, &self->eod);
+    while (self->pos < CDB32_TABLE_SIZE) CDB32_READ_NUM(self->pos);
 
     return (PyObject *)self;
 
@@ -203,6 +203,6 @@ error:
     return NULL;
 }
 
-#undef CDB_READ_NUM
+#undef CDB32_READ_NUM
 
 /* -------------------------- END CDBKeyIterType ------------------------- */

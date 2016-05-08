@@ -26,7 +26,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *weakreflist;
 
-    struct cdb_make maker;
+    cdb32_make_t maker32;
     PyObject *fp;
     PyObject *filename;
     int fp_opened;
@@ -46,29 +46,21 @@ CDBMakerType_clear(cdbmaker_t *);
 PyDoc_STRVAR(CDBMakerType_commit__doc__,
 "commit()\n\
 \n\
-Commit to the current dataset and finish the CDB creation.\n\
-\n\
-:Parameters:\n\
-  `key` : ``str``\n\
-    Key\n\
-\n\
-  `value` : ``value``\n\
-    Value");
+Commit to the current dataset and finish the CDB creation.");
 
 static PyObject *
 CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "", kwlist
-                                     ))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "", kwlist))
         return NULL;
 
     if (self->closed)
         return cdbx_raise_closed();
 
-    if (-1 == cdb_make_finish(&self->maker)
-        || -1 == fsync(self->maker.fd)) {
+    if (-1 == cdb32_make_finish(&self->maker32)
+        || -1 == fsync(self->maker32.fd)) {
         PyErr_SetFromErrno(PyExc_IOError);
         return NULL;
     }
@@ -97,7 +89,7 @@ CDBMakerType_add(cdbmaker_t *self, PyObject *args, PyObject *kwds)
     static char *kwlist[] = {"key", "value", NULL};
     PyObject *key_, *value_;
     char *ckey, *cvalue;
-    cdb_len_t ksize, vsize;
+    cdb32_len_t ksize, vsize;
     int res;
 
     if (self->closed)
@@ -115,7 +107,7 @@ CDBMakerType_add(cdbmaker_t *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
-    res = cdb_make_add(&self->maker, ckey, ksize, cvalue, vsize);
+    res = cdb32_make_add(&self->maker32, ckey, ksize, cvalue, vsize);
     Py_DECREF(value_);
     Py_DECREF(key_);
 
@@ -152,7 +144,7 @@ CDBMakerType_fileno(cdbmaker_t *self)
     if (self->closed)
         return cdbx_raise_closed();
 
-    return PyInt_FromLong(self->maker.fd);
+    return PyInt_FromLong(self->maker32.fd);
 }
 
 #ifdef EXT3
@@ -184,6 +176,7 @@ static int
 CDBMakerType_traverse(cdbmaker_t *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->fp);
+    Py_VISIT(self->filename);
 
     return 0;
 }
@@ -200,12 +193,12 @@ CDBMakerType_clear(cdbmaker_t *self)
 
     self->closed = 1;
 
-    if ((ptr = self->maker.split)) {
-        self->maker.split = NULL;
+    if ((ptr = self->maker32.split)) {
+        self->maker32.split = NULL;
         free(ptr);
     }
-    while ((ptr = self->maker.head)) {
-        self->maker.head = self->maker.head->next;
+    while ((ptr = self->maker32.head)) {
+        self->maker32.head = self->maker32.head->next;
         free(ptr);
     }
 
@@ -282,8 +275,8 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
     if (!(self = GENERIC_ALLOC(&CDBMakerType)))
         return NULL;
 
-    self->maker.head = NULL;
-    self->maker.split = NULL;
+    self->maker32.head = NULL;
+    self->maker32.split = NULL;
     self->closed = 1;
     self->destroy = 1;
     if (-1 == cdbx_obj_as_fd(file_, "w+b", &self->filename, &self->fp,
@@ -291,7 +284,7 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
         goto error;
 
     self->closed = 0;
-    if (-1 == cdb_make_start(&self->maker, fd))
+    if (-1 == cdb32_make_start(&self->maker32, fd))
         goto error;
 
     return (PyObject *)self;

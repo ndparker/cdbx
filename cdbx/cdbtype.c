@@ -24,9 +24,9 @@ struct cdbtype_t {
     PyObject_HEAD
     PyObject *weakreflist;
 
-    struct cdb *cdb;  /* cdb struct */
-    cdb_ref_t eod; /* sentinel for iterating - cached value */
-    cdb_ref_t begin; /* start position for iterating - cached value */
+    cdb32_t *cdb32;  /* cdb struct (original, 32 bit) */
+    cdb32_ref_t eod; /* sentinel for iterating - cached value */
+    cdb32_ref_t begin; /* start position for iterating - cached value */
 
     Py_ssize_t length;  /* Number of distinct keys - cached value */
     Py_ssize_t records;  /* Number of records (keys can be non-unique) - cached */
@@ -40,12 +40,12 @@ CDBType_clear(cdbtype_t *);
 
 
 /*
- * Return cdb struct member
+ * Return cdb32 struct member
  */
-struct cdb *
-cdbx_get_cdb(cdbtype_t *self)
+cdb32_t *
+cdbx_get_cdb32(cdbtype_t *self)
 {
-    return self->cdb;
+    return self->cdb32;
 }
 
 /* ------------------------ BEGIN Helper Functions ----------------------- */
@@ -68,24 +68,24 @@ raise_key_error(PyObject *key)
 
 /* ---------------------------- BEGIN CDBType ---------------------------- */
 
-#define CDB_READ_NUM(pos) do {                                 \
-    if (-1 == cdb_read(self->cdb, buf, CDB_NUM_SIZE, (pos))) { \
-        PyErr_SetFromErrno(PyExc_IOError);                     \
-        goto error;                                            \
-    }                                                          \
-    (pos) += CDB_NUM_SIZE;                                     \
+#define CDB32_READ_NUM(pos) do {                                     \
+    if (-1 == cdb32_read(self->cdb32, buf, CDB32_NUM_SIZE, (pos))) { \
+        PyErr_SetFromErrno(PyExc_IOError);                           \
+        goto error;                                                  \
+    }                                                                \
+    (pos) += CDB32_NUM_SIZE;                                         \
 } while (0)
 
 static Py_ssize_t
 CDBType_length(cdbtype_t *self)
 {
-    char buf[CDB_NUM_SIZE];
+    char buf[CDB32_NUM_SIZE];
     void *kbuf = NULL, *kbuftmp;
     size_t ksize;
     Py_ssize_t result, records;
-    cdb_ref_t eod, klen, dlen, pos;
+    cdb32_ref_t eod, klen, dlen, pos;
 
-    if (!self->cdb) {
+    if (!self->cdb32) {
         cdbx_raise_closed();
         return -1;
     }
@@ -95,10 +95,10 @@ CDBType_length(cdbtype_t *self)
         /* 1st: init pointers */
         if (!self->pos_cached) {
             pos = 0;
-            CDB_READ_NUM(pos);
-            cdb_num_unpack(buf, &eod);
+            CDB32_READ_NUM(pos);
+            cdb32_num_unpack(buf, &eod);
             self->eod = eod;
-            while (pos < CDB_TABLE_SIZE) CDB_READ_NUM(pos);
+            while (pos < CDB32_TABLE_SIZE) CDB32_READ_NUM(pos);
             self->begin = pos;
             self->pos_cached = 1;
         }
@@ -118,10 +118,10 @@ CDBType_length(cdbtype_t *self)
                 PyErr_SetString(PyExc_OverflowError, "Number of keys too big");
                 return -1;
             }
-            CDB_READ_NUM(pos);
-            cdb_num_unpack(buf, &klen);
-            CDB_READ_NUM(pos);
-            cdb_num_unpack(buf, &dlen);
+            CDB32_READ_NUM(pos);
+            cdb32_num_unpack(buf, &klen);
+            CDB32_READ_NUM(pos);
+            cdb32_num_unpack(buf, &dlen);
             if (!kbuf || ksize < (size_t)klen) {
                 if (!(kbuftmp = PyMem_Realloc(kbuf, (size_t)klen))) {
                     PyErr_NoMemory();
@@ -131,13 +131,13 @@ CDBType_length(cdbtype_t *self)
                 ksize = (size_t)klen;
             }
 
-            if (-1 == cdb_read(self->cdb, kbuf, klen, pos)) {
+            if (-1 == cdb32_read(self->cdb32, kbuf, klen, pos)) {
                 PyErr_SetFromErrno(PyExc_IOError);
                 goto error;
             }
             pos += klen;
 
-            switch (cdb_find(self->cdb, kbuf, klen)) {
+            switch (cdb32_find(self->cdb32, kbuf, klen)) {
             case -1:
                 PyErr_SetFromErrno(PyExc_IOError);
                 goto error;
@@ -148,7 +148,7 @@ CDBType_length(cdbtype_t *self)
 
             default:
                 ++records;
-                if (cdb_datapos(self->cdb) == pos)
+                if (cdb32_datapos(self->cdb32) == pos)
                     ++result;
             }
             pos += dlen;
@@ -169,7 +169,7 @@ error:
     return -1;
 }
 
-#undef CDB_READ_NUM
+#undef CDB32_READ_NUM
 
 PyDoc_STRVAR(CDBType_keys__doc__,
 "CDB.keys() - return iterator over unique keys");
@@ -183,7 +183,7 @@ PyDoc_STRVAR(CDBType_iter__doc__,
 static PyObject *
 CDBType_iter(cdbtype_t *self)
 {
-    if (!self->cdb)
+    if (!self->cdb32)
         return cdbx_raise_closed();
 
     return cdbx_keyiter_new(self);
@@ -236,10 +236,10 @@ PyDoc_STRVAR(CDBType_fileno__doc__,
 static PyObject *
 CDBType_fileno(cdbtype_t *self)
 {
-    if (!self->cdb)
+    if (!self->cdb32)
         return cdbx_raise_closed();
 
-    return PyInt_FromLong(self->cdb->fd);
+    return PyInt_FromLong(self->cdb32->fd);
 }
 
 #ifdef EXT3
@@ -250,10 +250,10 @@ static int
 CDBType_contains_int(cdbtype_t *self, PyObject *key)
 {
     char *ckey;
-    cdb_len_t csize;
+    cdb32_len_t csize;
     int res;
 
-    if (!self->cdb) {
+    if (!self->cdb32) {
         cdbx_raise_closed();
         return -1;
     }
@@ -261,7 +261,7 @@ CDBType_contains_int(cdbtype_t *self, PyObject *key)
     if (-1 == cdbx_byte_key(&key, &ckey, &csize))
         return -1;
 
-    res = cdb_find(self->cdb, ckey, csize);
+    res = cdb32_find(self->cdb32, ckey, csize);
     Py_DECREF(key);
     if (res == -1) {
         PyErr_SetFromErrno(PyExc_IOError);
@@ -303,17 +303,17 @@ CDBType_getitem(cdbtype_t *self, PyObject *key)
 {
     PyObject *result;
     char *ckey;
-    cdb_len_t csize;
+    cdb32_len_t csize;
     Py_ssize_t vsize;
-    cdb_ref_t pos, dlen;
+    cdb32_ref_t pos, dlen;
 
-    if (!self->cdb)
+    if (!self->cdb32)
         return cdbx_raise_closed();
 
     if (-1 == cdbx_byte_key(&key, &ckey, &csize))
         return NULL;
 
-    switch (cdb_find(self->cdb, ckey, csize)) {
+    switch (cdb32_find(self->cdb32, ckey, csize)) {
     case -1:
         PyErr_SetFromErrno(PyExc_IOError);
         goto error;
@@ -324,17 +324,17 @@ CDBType_getitem(cdbtype_t *self, PyObject *key)
     }
     Py_DECREF(key);
 
-    pos = cdb_datapos(self->cdb);
-    dlen = cdb_datalen(self->cdb);
+    pos = cdb32_datapos(self->cdb32);
+    dlen = cdb32_datalen(self->cdb32);
     vsize = (Py_ssize_t)dlen;
-    csize = (cdb_len_t)dlen;
-    if ((cdb_ref_t)vsize != dlen || (cdb_ref_t)csize != dlen) {
+    csize = (cdb32_len_t)dlen;
+    if ((cdb32_ref_t)vsize != dlen || (cdb32_ref_t)csize != dlen) {
         PyErr_SetString(PyExc_OverflowError, "Value is too long");
         return NULL;
     }
 
     result = PyBytes_FromStringAndSize(NULL, vsize);
-    if (-1 == cdb_read(self->cdb, PyBytes_AS_STRING(result), csize, pos)) {
+    if (-1 == cdb32_read(self->cdb32, PyBytes_AS_STRING(result), csize, pos)) {
         PyErr_SetFromErrno(PyExc_IOError);
         Py_DECREF(result);
         return NULL;
@@ -474,10 +474,10 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (!(self = GENERIC_ALLOC(type)))
         return NULL;
 
-    if (!(self->cdb = PyMem_Malloc(sizeof(*self->cdb))))
+    if (!(self->cdb32 = PyMem_Malloc(sizeof(*self->cdb32))))
         goto error;
 
-    self->cdb->map = NULL;
+    self->cdb32->map = NULL;
     self->pos_cached = 0;
     self->length = -1;
     self->records = -1;
@@ -486,7 +486,7 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
                              &fd))
         goto error;
 
-    cdb_init(self->cdb, fd);
+    cdb32_init(self->cdb32, fd);
 
     return (PyObject *)self;
 
@@ -507,7 +507,7 @@ static int
 CDBType_clear(cdbtype_t *self)
 {
     PyObject *fp;
-    struct cdb *cdb;
+    cdb32_t *cdb32;
 
     if (self->weakreflist)
         PyObject_ClearWeakRefs((PyObject *)self);
@@ -529,10 +529,10 @@ CDBType_clear(cdbtype_t *self)
         Py_DECREF(fp);
     }
 
-    if ((cdb = self->cdb)) {
-        self->cdb = NULL;
-        cdb_free(cdb);
-        PyMem_Free(cdb);
+    if ((cdb32 = self->cdb32)) {
+        self->cdb32 = NULL;
+        cdb32_free(cdb32);
+        PyMem_Free(cdb32);
     }
 
     return 0;

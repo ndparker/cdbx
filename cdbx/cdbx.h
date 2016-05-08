@@ -22,12 +22,22 @@
 #include "cdb_make.h"
 #include "cdb.h"
 
-typedef uint32 cdb_ref_t;
-typedef unsigned int cdb_len_t;
-#define CDB_NUM_SIZE (4)
-#define CDB_TABLE_SIZE (2048)
-#define cdb_num_unpack uint32_unpack
-
+typedef struct cdb cdb32_t;
+typedef struct cdb_make cdb32_make_t;
+typedef uint32 cdb32_ref_t;
+typedef unsigned int cdb32_len_t;
+#define CDB32_NUM_SIZE (4)
+#define CDB32_TABLE_SIZE (2048)
+#define cdb32_read cdb_read
+#define cdb32_find cdb_find
+#define cdb32_datapos cdb_datapos
+#define cdb32_datalen cdb_datalen
+#define cdb32_init cdb_init
+#define cdb32_free cdb_free
+#define cdb32_num_unpack uint32_unpack
+#define cdb32_make_finish cdb_make_finish
+#define cdb32_make_add cdb_make_add
+#define cdb32_make_start cdb_make_start
 
 /*
  * Main CDB type
@@ -40,8 +50,8 @@ extern PyTypeObject CDBType;
 #define CDBType_CheckExact(op) \
     ((op)->ob_type == &CDBType)
 
-struct cdb *
-cdbx_get_cdb(cdbtype_t *);
+cdb32_t *
+cdbx_get_cdb32(cdbtype_t *);
 
 
 /*
@@ -104,7 +114,7 @@ cdbx_obj_as_fd(PyObject *, char *, PyObject **, PyObject **, int *, int *);
  * Return 0 on success
  */
 int
-cdbx_byte_key(PyObject **, char **, cdb_len_t *);
+cdbx_byte_key(PyObject **, char **, cdb32_len_t *);
 
 /*
  * set IOError("I/O operation on a closed file") and return NULL

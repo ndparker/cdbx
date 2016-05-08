@@ -165,7 +165,7 @@ error:
  * Return 0 on success
  */
 int
-cdbx_byte_key(PyObject **key_, char **ckey, cdb_len_t *csize)
+cdbx_byte_key(PyObject **key_, char **ckey, cdb32_len_t *csize)
 {
     Py_ssize_t length;
     PyObject *key = *key_;
@@ -202,7 +202,7 @@ cdbx_byte_key(PyObject **key_, char **ckey, cdb_len_t *csize)
     }
 
     /* should not happen. But what do I know? */
-    *csize = (cdb_len_t)length;
+    *csize = (cdb32_len_t)length;
     if ((Py_ssize_t)*csize != length) {
         PyErr_SetString(PyExc_OverflowError, "Key is too long");
         goto error;
