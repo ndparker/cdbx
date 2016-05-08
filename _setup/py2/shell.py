@@ -96,6 +96,8 @@ def rm_rf(dest):
 try:
     mkstemp = _tempfile.mkstemp
 except AttributeError:
+    # pylint: disable = invalid-name
+
     # helpers stolen from 2.4 tempfile module
     try:
         import fcntl as _fcntl
@@ -135,7 +137,7 @@ except AttributeError:
             flags = _bin_openflags
         count = 100
         while count > 0:
-            j = _tempfile._counter.get_next() # pylint: disable = E1101, W0212
+            j = _tempfile._counter.get_next()  # pylint: disable = E1101, W0212
             fname = _os.path.join(dir, prefix + str(j) + suffix)
             try:
                 fd = _os.open(fname, flags, 0600)

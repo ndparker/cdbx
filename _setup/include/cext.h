@@ -74,6 +74,10 @@
 #define Py_TPFLAGS_HAVE_ITER (0)
 #endif
 
+#ifndef Py_TPFLAGS_HAVE_SEQUENCE_IN
+#define Py_TPFLAGS_HAVE_SEQUENCE_IN (0)
+#endif
+
 #ifndef PyMODINIT_FUNC
 #define EXT_INIT_FUNC PyObject *CONCATENATE(PyInit_, EXT_MODULE)(void)
 #else
