@@ -1,0 +1,88 @@
+.. license:
+    Copyright 2016
+    André Malo or his licensors, as applicable
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+        http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+
+========================================
+ CDBx - CDB Reimplementation for Python
+========================================
+
+|**cdbx**| is a `CDB <https://cr.yp.to/cdb.html>`_ reimplementation for
+Python.
+
+Supported python versions are Python 2.7 and Python 3.3 and above.
+
+
+Documentation
+~~~~~~~~~~~~~
+
+.. toctree::
+    :hidden:
+
+
+- :ref:`Documentation Search <search>` (needs javascript)
+- :cdbx:`API Documentation </>` (generated)
+
+
+.. comment:
+    Rationale, Advocacy, Key Features
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    WRITEME.
+
+
+Development Status
+~~~~~~~~~~~~~~~~~~
+
+Pre-Alpha.
+
+
+
+.. placeholder: Download
+
+
+License
+~~~~~~~
+
+|cdbx| is available under the terms and conditions of the "Apache
+License, Version 2.0." You'll find the detailed licensing terms in the
+root directory of the source distribution package or online at
+`http://www.apache.org/licenses/LICENSE-2.0
+<http://www.apache.org/licenses/LICENSE-2.0>`_.
+
+|cdbx| ships with a copy of `cdb`_, which has been `placed into the
+public domain`_.
+
+.. _cdb: https://cr.yp.to/cdb.html
+.. _placed into the public domain: https://cr.yp.to/distributors.html
+
+
+Bugs
+~~~~
+
+No bugs, of course. ;-)
+But if you've found one or have an idea how to improve |cdbx|,
+feel free to send a pull request on `github
+<https://github.com/ndparker/cdbx>`_ or send a mail to
+<cdbx-bugs@perlig.de>.
+
+
+Author Information
+~~~~~~~~~~~~~~~~~~
+
+|cdbx| was written and is maintained by André Malo.
+
+
+.. vim: ft=rest tw=72

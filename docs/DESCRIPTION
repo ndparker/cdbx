@@ -1,0 +1,55 @@
+=========================================
+  CDBx - CDB Reimplementation for Python
+=========================================
+
+|**cdbx**| is `CDB`_ reimplementation for Python.
+
+Supported python versions are Python 2.7 and Python 3.3 and above.
+
+.. _CDB: https://cr.yp.to/cdb.html
+
+
+Development Status
+~~~~~~~~~~~~~~~~~~
+
+Pre-Alpha.
+
+
+Copyright and License
+~~~~~~~~~~~~~~~~~~~~~
+
+Copyright 2016
+André Malo or his licensors, as applicable.
+
+The whole package is distributed under the Apache License Version 2.0.
+You'll find a copy in the root directory of the distribution or online
+at: <http://www.apache.org/licenses/LICENSE-2.0>.
+
+cdbx ships with a copy of `cdb`_, which has been `placed into the
+public domain`_.
+
+.. _cdb: https://cr.yp.to/cdb.html
+.. _placed into the public domain: https://cr.yp.to/distributors.html
+
+
+Bugs
+~~~~
+
+No bugs, of course. ;-)
+But if you've found one or have an idea how to improve cdbx, feel
+free to send a pull request on `github
+<https://github.com/ndparker/cdbx>`_ or send a mail to
+<cdbx-bugs@perlig.de>.
+
+
+Author Information
+~~~~~~~~~~~~~~~~~~
+
+André "nd" Malo <nd perlig.de>
+GPG: 0x8103A37E
+
+
+    If God intended people to be naked, they would be born that way.
+    -- Oscar Wilde
+
+.. vim:tw=72 syntax=rest

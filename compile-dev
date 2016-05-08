@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# -Wwrite-strings
+# -Wconversion
+
+# -Wmissing-prototypes
+# -Wmissing-declarations
+# -Wcast-qual
+#
+CFLAGS="-ggdb -std=c89 -pedantic -fno-strict-aliasing -Werror -Wnested-externs -Wcast-align -Wbad-function-cast -Wshadow -Wundef -Wdeclaration-after-statement -Wstrict-overflow=4 -Wmissing-include-dirs -Winit-self -Wextra -Wall -Wno-overlength-strings -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers" exec make clean compile
