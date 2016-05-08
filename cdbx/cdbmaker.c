@@ -16,8 +16,12 @@
  */
 
 #include "cdbx.h"
-#include <unistd.h>
-#include <stdlib.h>
+
+#define FL_FP_OPENED (1 << 0)
+#define FL_DESTROY   (1 << 1)
+#define FL_CLOSED    (1 << 2)
+#define FL_COMMITTED (1 << 3)
+#define FL_ERROR     (1 << 4)
 
 /*
  * Object structure for CDBType
@@ -26,61 +30,89 @@ typedef struct {
     PyObject_HEAD
     PyObject *weakreflist;
 
-    cdb32_make_t maker32;
+    cdbx_cdb32_maker_t *maker32;
+
+    PyObject *cdb_cls;
     PyObject *fp;
     PyObject *filename;
-    int fp_opened;
-    int destroy;
-    int closed;
+    int flags;
 } cdbmaker_t;
 
 static int
 CDBMakerType_clear(cdbmaker_t *);
 
-/* ------------------------ BEGIN Helper Functions ----------------------- */
-
-/* ------------------------- END Helper Functions ------------------------ */
-
 /* -------------------------- BEGIN CDBMakerType ------------------------- */
 
 PyDoc_STRVAR(CDBMakerType_commit__doc__,
-"commit()\n\
+"commit(self)\n\
 \n\
-Commit to the current dataset and finish the CDB creation.");
+Commit to the current dataset and finish the CDB creation.\n\
+\n\
+The `commit` method returns a new CDB instance based on the file just\n\
+committed.\n\
+\n\
+:Return: New CDB instance\n\
+:Rtype: `CDB`");
 
 static PyObject *
 CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {NULL};
+    PyObject *result;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "", kwlist))
         return NULL;
 
-    if (self->closed)
+    if (self->flags & (FL_CLOSED | FL_COMMITTED | FL_ERROR))
         return cdbx_raise_closed();
 
-    if (-1 == cdb32_make_finish(&self->maker32)
-        || -1 == fsync(self->maker32.fd)) {
+    if (-1 == cdbx_cdb32_maker_commit(self->maker32)) {
+        self->flags |= FL_ERROR;
+        return NULL;
+    }
+    self->flags |= FL_COMMITTED;
+
+    if (-1 == fsync(cdbx_cdb32_maker_fileno(self->maker32))) {
         PyErr_SetFromErrno(PyExc_IOError);
         return NULL;
     }
-    self->destroy = 0;
-    if (-1 == CDBMakerType_clear(self))
+
+    if (self->filename) {
+        result = PyObject_CallFunction(self->cdb_cls, "(O)", self->filename);
+    }
+    else if (self->fp) {
+        result = PyObject_CallFunction(self->cdb_cls, "(O)", self->fp);
+    }
+    else {
+        result = PyObject_CallFunction(self->cdb_cls, "(i)",
+                                       cdbx_cdb32_maker_fileno(self->maker32));
+    }
+    if (!result)
         return NULL;
 
-    Py_RETURN_NONE;
+    self->flags &= ~FL_DESTROY;
+    if (-1 == CDBMakerType_clear(self)) {
+        Py_DECREF(result);
+        return NULL;
+    }
+
+    return result;
 }
 
+
 PyDoc_STRVAR(CDBMakerType_add__doc__,
-"add(key, value)\n\
+"add(self, key, value)\n\
 \n\
 Add the key/value pair to the CDB-to-be.\n\
 \n\
+Note that in case of a unicode key or value, it will be transformed to a\n\
+byte string using the ascii encoding.\n\
+\n\
 :Parameters:\n\
-  `key` : ``str``\n\
+  `key` : ``bytes``\n\
     Key\n\
 \n\
-  `value` : ``value``\n\
+  `value` : ``bytes``\n\
     Value");
 
 static PyObject *
@@ -88,39 +120,27 @@ CDBMakerType_add(cdbmaker_t *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {"key", "value", NULL};
     PyObject *key_, *value_;
-    char *ckey, *cvalue;
-    cdb32_len_t ksize, vsize;
-    int res;
-
-    if (self->closed)
-        return cdbx_raise_closed();
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "OO", kwlist,
                                      &key_, &value_))
         return NULL;
 
-    if (-1 == cdbx_byte_key(&key_, &ckey, &ksize))
-        return NULL;
+    if (self->flags & (FL_CLOSED | FL_COMMITTED | FL_ERROR))
+        return cdbx_raise_closed();
 
-    if (-1 == cdbx_byte_key(&value_, &cvalue, &vsize)) {
-        Py_DECREF(key_);
-        return NULL;
-    }
-
-    res = cdb32_make_add(&self->maker32, ckey, ksize, cvalue, vsize);
-    Py_DECREF(value_);
-    Py_DECREF(key_);
-
-    if (res == -1) {
-        PyErr_SetFromErrno(PyExc_IOError);
+    if (-1 == cdbx_cdb32_maker_add(self->maker32, key_, value_)) {
+        self->flags |= FL_ERROR;
         return NULL;
     }
 
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(CDBMakerType_close__doc__,
-"CDBMaker.close() -> close maker and destroy");
+"close(self)\n\
+\n\
+Close the CDBMaker and destroy the file (if it was created by the maker)");
 
 static PyObject *
 CDBMakerType_close(cdbmaker_t *self)
@@ -131,8 +151,14 @@ CDBMakerType_close(cdbmaker_t *self)
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(CDBMakerType_fileno__doc__,
-"CDBMaker.fileno() -> int representing the underlying file descriptor");
+"fileno(self)\n\
+\n\
+Find underlying file descriptor\n\
+\n\
+:Return: The file descriptor\n\
+:Rtype: ``int``");
 
 #ifdef EXT3
 #define PyInt_FromLong PyLong_FromLong
@@ -141,15 +167,16 @@ PyDoc_STRVAR(CDBMakerType_fileno__doc__,
 static PyObject *
 CDBMakerType_fileno(cdbmaker_t *self)
 {
-    if (self->closed)
+    if (self->flags & FL_CLOSED)
         return cdbx_raise_closed();
 
-    return PyInt_FromLong(self->maker32.fd);
+    return PyInt_FromLong(cdbx_cdb32_maker_fileno(self->maker32));
 }
 
 #ifdef EXT3
 #undef PyInt_FromLong
 #endif
+
 
 static PyMethodDef CDBMakerType_methods[] = {
     {"close",
@@ -172,46 +199,41 @@ static PyMethodDef CDBMakerType_methods[] = {
     {NULL, NULL}
 };
 
+
 static int
 CDBMakerType_traverse(cdbmaker_t *self, visitproc visit, void *arg)
 {
     Py_VISIT(self->fp);
     Py_VISIT(self->filename);
+    Py_VISIT(self->cdb_cls);
 
     return 0;
 }
+
 
 static int
 CDBMakerType_clear(cdbmaker_t *self)
 {
     PyObject *fp, *fname;
-    void *ptr;
     int res = 0;
 
     if (self->weakreflist)
         PyObject_ClearWeakRefs((PyObject *)self);
 
-    self->closed = 1;
+    self->flags |= FL_CLOSED;
 
-    if ((ptr = self->maker32.split)) {
-        self->maker32.split = NULL;
-        free(ptr);
-    }
-    while ((ptr = self->maker32.head)) {
-        self->maker32.head = self->maker32.head->next;
-        free(ptr);
-    }
+    cdbx_cdb32_maker_destroy(&self->maker32);
 
     if ((fp = self->fp)) {
         self->fp = NULL;
-        if (self->fp_opened) {
+        if (self->flags & FL_FP_OPENED) {
             if (!PyObject_CallMethod(fp, "close", "")) {
                 if (PyErr_ExceptionMatches(PyExc_Exception))
                     PyErr_Clear();
                 else
                     res = -1;
             }
-            if (self->destroy && (fname = self->filename)) {
+            if (self->flags & FL_DESTROY && (fname = self->filename)) {
                 self->filename = NULL;
                 if (-1 == cdbx_unlink(fname))
                     res = -1;
@@ -221,14 +243,17 @@ CDBMakerType_clear(cdbmaker_t *self)
         Py_DECREF(fp);
     }
     Py_CLEAR(self->filename);
+    Py_CLEAR(self->cdb_cls);
 
     return res;
 }
 
+
 DEFINE_GENERIC_DEALLOC(CDBMakerType)
 
+
 PyDoc_STRVAR(CDBMakerType__doc__,
-"CDBMaker(cdb_class, file)");
+"CDBMaker - use CDB.make to create instance");
 
 PyTypeObject CDBMakerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -263,6 +288,7 @@ PyTypeObject CDBMakerType = {
     CDBMakerType_methods,                               /* tp_methods */
 };
 
+
 /*
  * Create new CDBMaker object
  */
@@ -270,21 +296,24 @@ PyObject *
 cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
 {
     cdbmaker_t *self;
-    int fd;
+    int fd, res;
 
     if (!(self = GENERIC_ALLOC(&CDBMakerType)))
         return NULL;
 
-    self->maker32.head = NULL;
-    self->maker32.split = NULL;
-    self->closed = 1;
-    self->destroy = 1;
-    if (-1 == cdbx_obj_as_fd(file_, "w+b", &self->filename, &self->fp,
-                             &self->fp_opened, &fd))
-        goto error;
+    self->maker32 = NULL;
+    self->flags = FL_CLOSED | FL_DESTROY;
+    self->cdb_cls = (PyObject *)cdb_cls;
+    Py_INCREF(self->cdb_cls);
 
-    self->closed = 0;
-    if (-1 == cdb32_make_start(&self->maker32, fd))
+    if (-1 == cdbx_obj_as_fd(file_, "w+b", &self->filename, &self->fp,
+                             &res, &fd))
+        goto error;
+    if (res)
+        self->flags |= FL_FP_OPENED;
+    self->flags &= ~FL_CLOSED;
+
+    if (-1 == cdbx_cdb32_maker_create(fd, &self->maker32))
         goto error;
 
     return (PyObject *)self;

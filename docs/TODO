@@ -1,3 +1,5 @@
-- implement
+- cleanup naming
+- implemented missing features (streams, value iterators and such)
+- start 64bit variant
 
 .. vim:tw=72 syntax=rest

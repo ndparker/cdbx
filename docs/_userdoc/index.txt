@@ -32,22 +32,100 @@ Documentation
     :hidden:
 
 
-- :ref:`Documentation Search <search>` (needs javascript)
 - :cdbx:`API Documentation </>` (generated)
 
 
-.. comment:
-    Rationale, Advocacy, Key Features
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Examples
+~~~~~~~~
 
-    WRITEME.
+Note that everything going in and out of the CDB is bytes. This is
+more relevant for Python 3. Keys and values which are passed as
+(unicode) strings, are converted to bytes using the ASCII codec.
+However, keys and values retrieved from the CDB are always bytes.
+
+
+.. code-block:: python
+
+    # simple file write
+    import cdbx
+
+    cdb = cdbx.CDB.make('somefile')
+    cdb.add('key', 'value')
+    # ...
+    cdb = cdb.commit()
+    print(cdb['key'])
+
+
+.. code-block:: python
+
+    # atomic file write (original cdbmake behaviour)
+    import os
+    import cdbx
+
+    cdb = cdbx.CDB.make('somefile.tmp')
+    cdb.add('key', 'value')
+    # ...
+    cdb.commit().close()
+    os.rename('somefile.tmp', 'somefile')
+    cdb = cdbx.CDB('somefile')
+    print(cdb['key'])
+
+
+.. code-block:: python
+
+    # CDB within tempfile
+    import tempfile
+    import cdbx
+
+    with tempfile.TemporaryFile() as fp:
+        cdb = cdbx.CDB.make(fp)
+        cdb.add('key', 'value')
+        # ...
+        cdb = cdb.commit()
+        print(cdb['key'])
+
+    # cdb holds a reference to the file
+    print(cdb['key'])
+    cdb.close()  # or going out-of-scope, or del cdb
+
+    # now it's gone
+    IOError: I/O operation on a closed file
+
+
+Rationale, Advocacy, Key Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`CDB <https://cr.yp.to/cdb.html>`_ as a concept is a great idea for
+various reasons. It's fast, it's a simple, portable file format and all
+operations can be done using one open file descriptor.
+
+There are, of course, other interfaces to CDB (most notably `python-cdb
+<https://pypi.python.org/pypi/python-cdb>`_, which I have been using for
+a long time).
+
+|cdbx| tries to solve a few problems with those for me:
+
+- support for Python 3
+- better interface for CDB creation - you only need a file descriptor if
+  you want to. This is important if you want to create a CDB within a
+  single temporary file.
+- all operations are independent from each other (multiple accesses at
+  the same time are possible). Thanks to the GIL it should be even
+  thread safe. This has not been tested yet, though.
+- more natural interface for the main CDB class in general
+- better error handling (especially with regard to python) in some
+  places
+- Since it's a complete reimplementation, the licensing issue (people
+  claim to have with public domain software [cdb]) does not apply.
 
 
 Development Status
 ~~~~~~~~~~~~~~~~~~
 
-Pre-Alpha.
+Beta.
 
+There are some features to add and some cleanups to do before a stable
+release.
 
 
 .. placeholder: Download
@@ -61,12 +139,6 @@ License, Version 2.0." You'll find the detailed licensing terms in the
 root directory of the source distribution package or online at
 `http://www.apache.org/licenses/LICENSE-2.0
 <http://www.apache.org/licenses/LICENSE-2.0>`_.
-
-|cdbx| ships with a copy of `cdb`_, which has been `placed into the
-public domain`_.
-
-.. _cdb: https://cr.yp.to/cdb.html
-.. _placed into the public domain: https://cr.yp.to/distributors.html
 
 
 Bugs

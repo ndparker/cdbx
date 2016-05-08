@@ -72,11 +72,9 @@ EXT_INIT_FUNC {
 
     EXT_INIT_TYPE(m, &CDBType);
     EXT_ADD_TYPE(m, "CDB", &CDBType);
-    EXT_INIT_TYPE(m, &CDBKeyIterType);
+    EXT_INIT_TYPE(m, &CDBIterType);
     EXT_INIT_TYPE(m, &CDBMakerType);
-
-#if (PCDB_TEST == 1)
-#endif
+    EXT_ADD_TYPE(m, "CDBMaker", &CDBMakerType);
 
     EXT_INIT_RETURN(m);
 }

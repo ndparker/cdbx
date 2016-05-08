@@ -78,8 +78,8 @@ class Target(make.Target):
             _sys.path.insert(0, libpath)
 
         self.ebuild_files = {
-            'cdbx-alpha.ebuild.in':
-                'cdbx-%(VERSION)s_alpha%(REV)s.ebuild',
+            'cdbx-beta.ebuild.in':
+                'cdbx-%(VERSION)s_beta%(REV)s.ebuild',
             # 'cdbx.ebuild.in': 'cdbx-%(VERSION)s.ebuild',
         }
 

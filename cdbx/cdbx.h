@@ -19,25 +19,14 @@
 #define CDBX_H
 
 #include "cext.h"
-#include "cdb_make.h"
-#include "cdb.h"
 
-typedef struct cdb cdb32_t;
-typedef struct cdb_make cdb32_make_t;
-typedef uint32 cdb32_ref_t;
-typedef unsigned int cdb32_len_t;
-#define CDB32_NUM_SIZE (4)
-#define CDB32_TABLE_SIZE (2048)
-#define cdb32_read cdb_read
-#define cdb32_find cdb_find
-#define cdb32_datapos cdb_datapos
-#define cdb32_datalen cdb_datalen
-#define cdb32_init cdb_init
-#define cdb32_free cdb_free
-#define cdb32_num_unpack uint32_unpack
-#define cdb32_make_finish cdb_make_finish
-#define cdb32_make_add cdb_make_add
-#define cdb32_make_start cdb_make_start
+/* CDB32 public types (private impl) */
+typedef struct cdbx_cdb32_t cdbx_cdb32_t;
+typedef struct cdbx_cdb32_iter_t cdbx_cdb32_iter_t;
+typedef struct cdbx_cdb32_pointer_t cdbx_cdb32_pointer_t;
+typedef struct cdbx_cdb32_maker_t cdbx_cdb32_maker_t;
+typedef struct cdbx_cdb32_get_iter_t cdbx_cdb32_get_iter_t;
+
 
 /*
  * Main CDB type
@@ -50,16 +39,16 @@ extern PyTypeObject CDBType;
 #define CDBType_CheckExact(op) \
     ((op)->ob_type == &CDBType)
 
-cdb32_t *
-cdbx_get_cdb32(cdbtype_t *);
+cdbx_cdb32_t *
+cdbx_type_get_cdb32(cdbtype_t *);
 
 
 /*
  * Key iterator
  */
-extern PyTypeObject CDBKeyIterType;
+extern PyTypeObject CDBIterType;
 PyObject *
-cdbx_keyiter_new(cdbtype_t *);
+cdbx_iter_new(cdbtype_t *, int, int);
 
 
 /*
@@ -71,15 +60,187 @@ cdbx_maker_new(PyTypeObject *, PyObject *);
 
 
 /*
- * If 1, some wrapper objects are added for testing purposes
+ * ************************************************************************
+ * CDB 32
+ * ************************************************************************
  */
-#ifndef PCDB_TEST
-#define PCDB_TEST 0
-#endif
+
+/*
+ * Create cdbx_cdb32_t instance
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_create(int, cdbx_cdb32_t **);
 
 
-#if (PCDB_TEST == 1)
-#endif
+/*
+ * Destroy cdbx_cdb32_t instance
+ */
+void
+cdbx_cdb32_destroy(cdbx_cdb32_t **);
+
+
+/*
+ * Read a pointed value into a bytes object
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_read(cdbx_cdb32_t *, cdbx_cdb32_pointer_t *, PyObject **);
+
+
+/*
+ * Return the FD
+ */
+int
+cdbx_cdb32_fileno(cdbx_cdb32_t *);
+
+
+/*
+ * Check if key is in the CDB
+ *
+ * Return -1 on error
+ * Return 0 on success (no)
+ * Return 1 on success (yes)
+ *
+ */
+int
+cdbx_cdb32_contains(cdbx_cdb32_t *, PyObject *);
+
+
+/*
+ * Count the number of unique keys (cached)
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_count_keys(cdbx_cdb32_t *, Py_ssize_t *);
+
+
+/*
+ * Count the number of records (cached)
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_count_records(cdbx_cdb32_t *, Py_ssize_t *);
+
+
+/*
+ * Create new get-iterator
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_get_iter_new(cdbx_cdb32_t *, PyObject *, cdbx_cdb32_get_iter_t **);
+
+
+/*
+ * Get next value from get-iterator
+ *
+ * Return -1 on error
+ * Return 0 on success (including exhausted, which emits NULL)
+ */
+int
+cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *, PyObject **);
+
+
+/*
+ * Destroy get-iterator
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+void
+cdbx_cdb32_get_iter_destroy(cdbx_cdb32_get_iter_t **);
+
+
+/*
+ * Create cdbx_cdb32_iter
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_iter_create(cdbx_cdb32_t *, cdbx_cdb32_iter_t **);
+
+
+/*
+ * Destroy cdbx_cdb32_iter_t
+ */
+void
+cdbx_cdb32_iter_destroy(cdbx_cdb32_iter_t **);
+
+
+/*
+ * Find next key/value pair
+ *
+ * Opaque key and value pointers are returned (invalidated by next call).
+ * key will be NULL if the end is reached.
+ * value ref may be NULL
+ *
+ * first == 1 if this is the first occurence of the key, 0 otherwise.
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *, cdbx_cdb32_pointer_t **,
+                     cdbx_cdb32_pointer_t **, int *);
+
+
+/*
+ * Create new maker instance
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_maker_create(int, cdbx_cdb32_maker_t **);
+
+
+/*
+ * Destroy maker instance
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+void
+cdbx_cdb32_maker_destroy(cdbx_cdb32_maker_t **);
+
+
+/*
+ * Return the FD
+ */
+int
+cdbx_cdb32_maker_fileno(cdbx_cdb32_maker_t *);
+
+
+/*
+ * Add a key/value pair
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *, PyObject *, PyObject *);
+
+
+/*
+ * Commit the CDB
+ *
+ * Return -1 on error
+ * Return 0 on success
+ */
+int
+cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *);
+
 
 /*
  * ************************************************************************
@@ -96,6 +257,7 @@ cdbx_maker_new(PyTypeObject *, PyObject *);
 int
 cdbx_unlink(PyObject *);
 
+
 /*
  * Turn python object into a file descriptor
  *
@@ -105,22 +267,13 @@ cdbx_unlink(PyObject *);
 int
 cdbx_obj_as_fd(PyObject *, char *, PyObject **, PyObject **, int *, int *);
 
-/*
- * Transform bytes/unicode key to char/len
- *
- * RC(key_) is increased on success. However, *key_ might be replaced (Py2).
- *
- * Return -1 on error
- * Return 0 on success
- */
-int
-cdbx_byte_key(PyObject **, char **, cdb32_len_t *);
 
 /*
  * set IOError("I/O operation on a closed file") and return NULL
  */
 PyObject *
 cdbx_raise_closed(void);
+
 
 /*
  * Convert int object to fd
@@ -130,6 +283,7 @@ cdbx_raise_closed(void);
  */
 int
 cdbx_fd(PyObject *, int *);
+
 
 /*
  * Find a particular pyobject attribute

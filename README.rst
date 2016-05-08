@@ -28,7 +28,7 @@ INTRODUCTION
 DEVELOPMENT STATUS
 ------------------
 
-Pre-Alpha.
+Beta.
 
 
 COPYRIGHT AND LICENSE
@@ -40,12 +40,6 @@ André Malo or his licensors, as applicable.
 The whole package is distributed under the Apache License Version 2.0.
 You'll find a copy in the root directory of the distribution or online
 at: <http://www.apache.org/licenses/LICENSE-2.0>.
-
-cdbx ships with a copy of `cdb`_, which has been `placed into the public
-domain`_.
-
-.. _cdb: https://cr.yp.to/cdb.html
-.. _placed into the public domain: https://cr.yp.to/distributors.html
 
 
 SYSTEM REQUIREMENTS

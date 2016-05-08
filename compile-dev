@@ -1,10 +1,25 @@
 #!/bin/sh
 
-# -Wwrite-strings
-# -Wconversion
+CFLAGS="-ggdb -std=c89 -pedantic -fno-strict-aliasing -Werror"
+CFLAGS="${CFLAGS} -Wnested-externs"
+CFLAGS="${CFLAGS} -Wcast-align"
+CFLAGS="${CFLAGS} -Wbad-function-cast"
+CFLAGS="${CFLAGS} -Wshadow"
+CFLAGS="${CFLAGS} -Wundef"
+CFLAGS="${CFLAGS} -Wdeclaration-after-statement"
+CFLAGS="${CFLAGS} -Wstrict-overflow=4"
+CFLAGS="${CFLAGS} -Wmissing-include-dirs"
+CFLAGS="${CFLAGS} -Winit-self"
+CFLAGS="${CFLAGS} -Wextra"
+CFLAGS="${CFLAGS} -Wall"
+CFLAGS="${CFLAGS} -Wno-overlength-strings"
+CFLAGS="${CFLAGS} -Wno-long-long"
+CFLAGS="${CFLAGS} -Wno-unused-parameter"
+CFLAGS="${CFLAGS} -Wno-missing-field-initializers"
+CFLAGS="${CFLAGS} -Wcast-qual"
+CFLAGS="${CFLAGS} -Wmissing-declarations"
+CFLAGS="${CFLAGS} -Wmissing-prototypes"
+CFLAGS="${CFLAGS} -Wconversion"
+# CFLAGS="${CFLAGS} -Wwrite-strings"
 
-# -Wmissing-prototypes
-# -Wmissing-declarations
-# -Wcast-qual
-#
-CFLAGS="-ggdb -std=c89 -pedantic -fno-strict-aliasing -Werror -Wnested-externs -Wcast-align -Wbad-function-cast -Wshadow -Wundef -Wdeclaration-after-statement -Wstrict-overflow=4 -Wmissing-include-dirs -Winit-self -Wextra -Wall -Wno-overlength-strings -Wno-long-long -Wno-unused-parameter -Wno-missing-field-initializers" exec make clean compile
+CFLAGS="${CFLAGS}" exec make clean compile

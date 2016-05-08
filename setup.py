@@ -28,39 +28,16 @@ def setup(args=None, _manifest=0):
         manifest_only=_manifest,
         ext=[
             Extension('cdbx._cdb', [
-                "cdbx/_cdb32/buffer.c",
-                "cdbx/_cdb32/buffer_put.c",
-                "cdbx/_cdb32/byte_copy.c",
-                "cdbx/_cdb32/byte_diff.c",
-                "cdbx/_cdb32/cdb.c",
-                "cdbx/_cdb32/cdb_hash.c",
-                "cdbx/_cdb32/cdb_make.c",
-                "cdbx/_cdb32/error.c",
-                "cdbx/_cdb32/seek_set.c",
-                "cdbx/_cdb32/str_len.c",
-                "cdbx/_cdb32/uint32_pack.c",
-                "cdbx/_cdb32/uint32_unpack.c",
-
                 "cdbx/main.c",
-                "cdbx/cdbtype.c",
+                "cdbx/cdb32.c",
+                "cdbx/cdbiter.c",
                 "cdbx/cdbmaker.c",
-                "cdbx/cdbkeyiter.c",
+                "cdbx/cdbtype.c",
                 "cdbx/util.c",
             ], depends=[
-                "cdbx/_cdb32/buffer.h",
-                "cdbx/_cdb32/byte.h",
-                "cdbx/_cdb32/cdb.h",
-                "cdbx/_cdb32/cdb_make.h",
-                "cdbx/_cdb32/error.h",
-                "cdbx/_cdb32/seek.h",
-                "cdbx/_cdb32/str.h",
-                "cdbx/_cdb32/uint32.h",
-                "cdbx/_cdb32/readwrite.h",
-
                 "cdbx/cdbx.h",
             ], include_dirs=[
                 "cdbx",
-                "cdbx/_cdb32",
             ])
         ],
     )

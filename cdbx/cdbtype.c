@@ -17,6 +17,8 @@
 
 #include "cdbx.h"
 
+#define FL_FP_OPENED (1 << 0)
+
 /*
  * Object structure for CDBType
  */
@@ -24,15 +26,10 @@ struct cdbtype_t {
     PyObject_HEAD
     PyObject *weakreflist;
 
-    cdb32_t *cdb32;  /* cdb struct (original, 32 bit) */
-    cdb32_ref_t eod; /* sentinel for iterating - cached value */
-    cdb32_ref_t begin; /* start position for iterating - cached value */
+    cdbx_cdb32_t *cdb32;  /* cdb struct, 32bit */
 
-    Py_ssize_t length;  /* Number of distinct keys - cached value */
-    Py_ssize_t records;  /* Number of records (keys can be non-unique) - cached */
     PyObject *fp;  /* open file, might be NULL if fd was passed */
-    int fp_opened;
-    int pos_cached;
+    int flags;
 };
 
 static int
@@ -42,8 +39,8 @@ CDBType_clear(cdbtype_t *);
 /*
  * Return cdb32 struct member
  */
-cdb32_t *
-cdbx_get_cdb32(cdbtype_t *self)
+cdbx_cdb32_t *
+cdbx_type_get_cdb32(cdbtype_t *self)
 {
     return self->cdb32;
 }
@@ -68,116 +65,234 @@ raise_key_error(PyObject *key)
 
 /* ---------------------------- BEGIN CDBType ---------------------------- */
 
-#define CDB32_READ_NUM(pos) do {                                     \
-    if (-1 == cdb32_read(self->cdb32, buf, CDB32_NUM_SIZE, (pos))) { \
-        PyErr_SetFromErrno(PyExc_IOError);                           \
-        goto error;                                                  \
-    }                                                                \
-    (pos) += CDB32_NUM_SIZE;                                         \
-} while (0)
-
 static Py_ssize_t
-CDBType_length(cdbtype_t *self)
+CDBType_len_ssize_t(cdbtype_t *self)
 {
-    char buf[CDB32_NUM_SIZE];
-    void *kbuf = NULL, *kbuftmp;
-    size_t ksize;
-    Py_ssize_t result, records;
-    cdb32_ref_t eod, klen, dlen, pos;
+    Py_ssize_t result;
 
     if (!self->cdb32) {
         cdbx_raise_closed();
         return -1;
     }
 
-    /* We need to count it, so count it and cache */
-    if (self->length < 0) {
-        /* 1st: init pointers */
-        if (!self->pos_cached) {
-            pos = 0;
-            CDB32_READ_NUM(pos);
-            cdb32_num_unpack(buf, &eod);
-            self->eod = eod;
-            while (pos < CDB32_TABLE_SIZE) CDB32_READ_NUM(pos);
-            self->begin = pos;
-            self->pos_cached = 1;
-        }
-        else {
-            eod = self->eod;
-            pos = self->begin;
-        }
+    if (-1 == cdbx_cdb32_count_keys(self->cdb32, &result))
+        return -1;
 
-        result = 0;
-        records = 0;
-        ksize = 0;
-        kbuf = NULL;
-
-        /* And now count the keys */
-        while (pos < eod) {
-            if (!(records < PY_SSIZE_T_MAX)) {
-                PyErr_SetString(PyExc_OverflowError, "Number of keys too big");
-                return -1;
-            }
-            CDB32_READ_NUM(pos);
-            cdb32_num_unpack(buf, &klen);
-            CDB32_READ_NUM(pos);
-            cdb32_num_unpack(buf, &dlen);
-            if (!kbuf || ksize < (size_t)klen) {
-                if (!(kbuftmp = PyMem_Realloc(kbuf, (size_t)klen))) {
-                    PyErr_NoMemory();
-                    goto error;
-                }
-                kbuf = kbuftmp;
-                ksize = (size_t)klen;
-            }
-
-            if (-1 == cdb32_read(self->cdb32, kbuf, klen, pos)) {
-                PyErr_SetFromErrno(PyExc_IOError);
-                goto error;
-            }
-            pos += klen;
-
-            switch (cdb32_find(self->cdb32, kbuf, klen)) {
-            case -1:
-                PyErr_SetFromErrno(PyExc_IOError);
-                goto error;
-
-            case 0:
-                PyErr_SetString(PyExc_ValueError, "CDB Format Error");
-                goto error;
-
-            default:
-                ++records;
-                if (cdb32_datapos(self->cdb32) == pos)
-                    ++result;
-            }
-            pos += dlen;
-        }
-
-        if (kbuf)
-            PyMem_Free(kbuf);
-
-        self->length = result;
-        self->records = records;
-    }
-
-    return self->length;
-
-error:
-    if (kbuf)
-        PyMem_Free(kbuf);
-    return -1;
+    return result;
 }
 
-#undef CDB32_READ_NUM
+
+#ifdef METH_COEXIST
+PyDoc_STRVAR(CDBType_len__doc__,
+"__len__(self)\n\
+\n\
+Count the number of unique keys\n\
+\n\
+:Return: The number of unique keys\n\
+:Rtype: ``int``");
+
+#ifdef EXT3
+#define PyInt_FromSsize_t PyLong_FromSsize_t
+#endif
+
+static PyObject *
+CDBType_len(cdbtype_t *self)
+{
+    Py_ssize_t result;
+
+    if (-1 == (result = CDBType_len_ssize_t(self)))
+        return NULL;
+
+    return PyInt_FromSsize_t(result);
+}
+
+#ifdef EXT3
+#undef PyInt_FromSsize_t
+#endif
+
+#endif
+
+
+PyDoc_STRVAR(CDBType_get__doc__,
+"get(self, key, default=None, all=False)\n\
+\n\
+Return value(s) for a key\n\
+\n\
+If `key` is not found, `default` is returned. If `key` was found, then\n\
+depending on the `all` flag the value return is either a byte string\n\
+(`all` == False) or a list of byte strings (`all` == True).\n\
+\n\
+Note that in case of a unicode key, it will be transformed to a byte string\n\
+using the ascii encoding.\n\
+\n\
+:Parameters:\n\
+  `key` : ``bytes``\n\
+    Key to lookup\n\
+\n\
+  `default` : any\n\
+    Default value to pass back if the key was not found\n\
+\n\
+  `all` : ``bool``\n\
+    Return all values instead of only the first? Default: False\n\
+\n\
+:Return: The value(s) or the default\n\
+:Rtype: any");
+
+static PyObject *
+CDBType_get(cdbtype_t *self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"key", "default", "all", NULL};
+    PyObject *key_, *default_ = NULL, *all_ = NULL;
+    PyObject *result, *result_list;
+    cdbx_cdb32_get_iter_t *get_iter;
+    int res, all = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", kwlist,
+                                     &key_, &default_, &all_))
+        return NULL;
+
+    if (!self->cdb32)
+        return cdbx_raise_closed();
+
+    if (default_)
+        Py_INCREF(default_);
+    else {
+        Py_INCREF(Py_None);
+        default_ = Py_None;
+    }
+
+    if (all_) {
+        switch (PyObject_IsTrue(all_)) {
+        case -1: goto error;
+        case 1: all = 1;
+        }
+    }
+    if (all && !(result_list = PyList_New(0)))
+        goto error;
+
+    if (-1 == cdbx_cdb32_get_iter_new(self->cdb32, key_, &get_iter))
+        goto error_list;
+
+    do {
+        if (-1 == cdbx_cdb32_get_iter_next(get_iter, &result))
+            goto error_get_iter;
+        if (all && result) {
+            res = PyList_Append(result_list, result);
+            Py_DECREF(result);
+            if (-1 == res)
+                goto error_get_iter;
+        }
+    } while (all && result);
+    cdbx_cdb32_get_iter_destroy(&get_iter);
+
+    if (all) {
+        if (!PyList_GET_SIZE(result_list)) {
+            Py_DECREF(result_list);
+            return default_;
+        }
+        Py_DECREF(default_);
+        return result_list;
+    }
+
+    if (!result)
+        return default_;
+
+    Py_DECREF(default_);
+    return result;
+
+error_get_iter:
+    cdbx_cdb32_get_iter_destroy(&get_iter);
+error_list:
+    if (all)
+        Py_DECREF(result_list);
+error:
+    Py_DECREF(default_);
+    return NULL;
+}
+
+
+PyDoc_STRVAR(CDBType_items__doc__,
+"items(self, all=False)\n\
+\n\
+Create key/value pair iterator\n\
+\n\
+:Parameters:\n\
+  `all` : ``bool``\n\
+    Return all (i.e. non-unique-key) items? Default: False\n\
+\n\
+:Return: Iterator over items\n\
+:Rtype: iterable");
+
+static PyObject *
+CDBType_items(cdbtype_t *self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"all", NULL};
+    PyObject *all_ = NULL;
+    int all = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist,
+                                     &all_))
+        return NULL;
+
+    if (!self->cdb32)
+        return cdbx_raise_closed();
+
+    if (all_) {
+        switch (PyObject_IsTrue(all_)) {
+        case -1: return NULL;
+        case 1: all = 1;
+        }
+    }
+
+    return cdbx_iter_new(self, 1, all);
+}
+
 
 PyDoc_STRVAR(CDBType_keys__doc__,
-"CDB.keys() - return iterator over unique keys");
-#define CDBType_keys CDBType_iter
+"keys(self, all=False)\n\
+\n\
+Create key iterator\n\
+\n\
+:Parameters:\n\
+  `all` : ``bool``\n\
+    Return all (i.e. non-unique) keys? Default: False\n\
+\n\
+:Return: Iterator over keys\n\
+:Rtype: iterable");
+
+static PyObject *
+CDBType_keys(cdbtype_t *self, PyObject *args, PyObject *kwds)
+{
+    static char *kwlist[] = {"all", NULL};
+    PyObject *all_ = NULL;
+    int all = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "|O", kwlist,
+                                     &all_))
+        return NULL;
+
+    if (!self->cdb32)
+        return cdbx_raise_closed();
+
+    if (all_) {
+        switch (PyObject_IsTrue(all_)) {
+        case -1: return NULL;
+        case 1: all = 1;
+        }
+    }
+
+    return cdbx_iter_new(self, 0, all);
+}
+
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_iter__doc__,
-"CDB.__iter__() - return iterator over unique keys");
+"__iter__(self)\n\
+\n\
+Create an iterator over unique keys - in insertion order\n\
+\n\
+:Return: The key iterator\n\
+:Rtype: iterable");
 #endif
 
 static PyObject *
@@ -186,8 +301,9 @@ CDBType_iter(cdbtype_t *self)
     if (!self->cdb32)
         return cdbx_raise_closed();
 
-    return cdbx_keyiter_new(self);
+    return cdbx_iter_new(self, 0, 0);
 }
+
 
 PyDoc_STRVAR(CDBType_make__doc__,
 "make(cls, file)\n\
@@ -200,7 +316,7 @@ Create a CDB maker instance, which returns a CDB instance when done.\n\
     integer (representing a filedescriptor).\n\
 \n\
 :Return: New maker instance\n\
-:Rtype: ``CDBMaker``");
+:Rtype: `CDBMaker`");
 
 static PyObject *
 CDBType_make(PyTypeObject *cls, PyObject *args, PyObject *kwds)
@@ -215,8 +331,11 @@ CDBType_make(PyTypeObject *cls, PyObject *args, PyObject *kwds)
     return cdbx_maker_new(cls, file_);
 }
 
+
 PyDoc_STRVAR(CDBType_close__doc__,
-"CDB.close() - close the cdb");
+"close(self)\n\
+\n\
+Close the CDB.");
 
 static PyObject *
 CDBType_close(cdbtype_t *self)
@@ -226,8 +345,14 @@ CDBType_close(cdbtype_t *self)
     Py_RETURN_NONE;
 }
 
+
 PyDoc_STRVAR(CDBType_fileno__doc__,
-"CDB.fileno() -> int representing the underlying file descriptor");
+"fileno(self)\n\
+\n\
+Find the underlying file descriptor\n\
+\n\
+:Return: The underlying file descriptor\n\
+:Rtype: ``int``");
 
 #ifdef EXT3
 #define PyInt_FromLong PyLong_FromLong
@@ -239,47 +364,51 @@ CDBType_fileno(cdbtype_t *self)
     if (!self->cdb32)
         return cdbx_raise_closed();
 
-    return PyInt_FromLong(self->cdb32->fd);
+    return PyInt_FromLong(cdbx_cdb32_fileno(self->cdb32));
 }
 
 #ifdef EXT3
 #undef PyInt_FromLong
 #endif
 
+
 static int
 CDBType_contains_int(cdbtype_t *self, PyObject *key)
 {
-    char *ckey;
-    cdb32_len_t csize;
-    int res;
-
     if (!self->cdb32) {
         cdbx_raise_closed();
         return -1;
     }
 
-    if (-1 == cdbx_byte_key(&key, &ckey, &csize))
-        return -1;
-
-    res = cdb32_find(self->cdb32, ckey, csize);
-    Py_DECREF(key);
-    if (res == -1) {
-        PyErr_SetFromErrno(PyExc_IOError);
-        return -1;
-    }
-    else if (res == 0) {
-        return 0;
-    }
-
-    return 1;
+    return cdbx_cdb32_contains(self->cdb32, key);
 }
 
 PyDoc_STRVAR(CDBType_has_key__doc__,
-"CDB.has_key(key) -> True if CDB has a key 'key', else False");
+"has_key(self, key)\n\
+\n\
+Check if the key appears in the CDB.\n\
+\n\
+Note that in case of a unicode key, it will be transformed to a byte string\n\
+using the ascii encoding.\n\
+\n\
+:Return: Does the key exists?\n\
+:Rtype: ``bool``");
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_contains__doc__,
-"CDB.__contains__(key) -> True if CDB has a key 'key', else False");
+"__contains__(self, key)\n\
+\n\
+Check if the key appears in the CDB.\n\
+\n\
+Note that in case of a unicode key, it will be transformed to a byte string\n\
+using the ascii encoding.\n\
+\n\
+:Parameters:\n\
+  `key` : ``basestring``\n\
+    Key to look up\n\
+\n\
+:Return: Does the key exists?\n\
+:Rtype: ``bool``");
 #endif
 
 static PyObject *
@@ -292,59 +421,49 @@ CDBType_contains(cdbtype_t *self, PyObject *key)
     }
 }
 
+
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_getitem__doc__,
-"Find the first value of the passed key and return as bytestring\n\
+"__getitem__(self, key)\n\
 \n\
-Note that in case of a unicode key, it will be transformed to utf-8 first.");
+Find the first value of the passed key and return the value as bytestring\n\
+\n\
+Note that in case of a unicode key, it will be transformed to a byte string\n\
+using the ascii encoding.\n\
+\n\
+:Parameters:\n\
+  `key` : ``basestring``\n\
+    Key to look up\n\
+\n\
+:Return: The first value of the key\n\
+:Rtype: ``bytes``\n\
+\n\
+:Exceptions:\n\
+  - `KeyError` : Key not found");
 #endif
+
 static PyObject *
 CDBType_getitem(cdbtype_t *self, PyObject *key)
 {
     PyObject *result;
-    char *ckey;
-    cdb32_len_t csize;
-    Py_ssize_t vsize;
-    cdb32_ref_t pos, dlen;
+    cdbx_cdb32_get_iter_t *get_iter;
+    int res;
 
     if (!self->cdb32)
         return cdbx_raise_closed();
 
-    if (-1 == cdbx_byte_key(&key, &ckey, &csize))
+    if (-1 == cdbx_cdb32_get_iter_new(self->cdb32, key, &get_iter))
         return NULL;
 
-    switch (cdb32_find(self->cdb32, ckey, csize)) {
-    case -1:
-        PyErr_SetFromErrno(PyExc_IOError);
-        goto error;
+    res = cdbx_cdb32_get_iter_next(get_iter, &result);
+    cdbx_cdb32_get_iter_destroy(&get_iter);
+    if (-1 == res)
+        return NULL;
 
-    case 0:
+    if (!result)
         raise_key_error(key);
-        goto error;
-    }
-    Py_DECREF(key);
-
-    pos = cdb32_datapos(self->cdb32);
-    dlen = cdb32_datalen(self->cdb32);
-    vsize = (Py_ssize_t)dlen;
-    csize = (cdb32_len_t)dlen;
-    if ((cdb32_ref_t)vsize != dlen || (cdb32_ref_t)csize != dlen) {
-        PyErr_SetString(PyExc_OverflowError, "Value is too long");
-        return NULL;
-    }
-
-    result = PyBytes_FromStringAndSize(NULL, vsize);
-    if (-1 == cdb32_read(self->cdb32, PyBytes_AS_STRING(result), csize, pos)) {
-        PyErr_SetFromErrno(PyExc_IOError);
-        Py_DECREF(result);
-        return NULL;
-    }
 
     return result;
-
-error:
-    Py_DECREF(key);
-    return NULL;
 }
 
 
@@ -362,10 +481,11 @@ static PySequenceMethods CDBType_as_sequence = {
 };
 
 static PyMappingMethods CDBType_as_mapping = {
-    (lenfunc)CDBType_length,         /* mp_length */
+    (lenfunc)CDBType_len_ssize_t,    /* mp_length */
     (binaryfunc)CDBType_getitem,     /* mp_subscript */
     0                                /* mp_ass_subscript */
 };
+
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_new__doc__,
@@ -385,6 +505,7 @@ static PyObject *
 CDBType_new(PyTypeObject *cls, PyObject *args, PyObject *kwds);
 #endif
 
+
 static PyMethodDef CDBType_methods[] = {
 #ifdef METH_COEXIST
     {"__new__",
@@ -393,6 +514,10 @@ static PyMethodDef CDBType_methods[] = {
                                                 METH_KEYWORDS |
                                                 METH_VARARGS,
      CDBType_new__doc__},
+
+    {"__len__",
+     (PyCFunction)CDBType_len,                  METH_NOARGS | METH_COEXIST,
+     CDBType_len__doc__},
 
     {"__iter__",
      (PyCFunction)CDBType_iter,                 METH_NOARGS | METH_COEXIST,
@@ -426,14 +551,21 @@ static PyMethodDef CDBType_methods[] = {
      CDBType_has_key__doc__},
 
     {"keys",
-     (PyCFunction)CDBType_keys,                 METH_NOARGS,
+     (PyCFunction)CDBType_keys,                 METH_KEYWORDS |
+                                                METH_VARARGS,
      CDBType_keys__doc__},
 
-#if 0
+    {"items",
+     (PyCFunction)CDBType_items,                METH_KEYWORDS |
+                                                METH_VARARGS,
+     CDBType_items__doc__},
+
     {"get",
-     (PyCFunction)CDBType_get,                  METH_VARARGS,
+     (PyCFunction)CDBType_get,                  METH_KEYWORDS |
+                                                METH_VARARGS,
      CDBType_get__doc__},
 
+#if 0
     {"getiter",
      (PyCFunction)CDBType_getiter,              METH_VARARGS,
      CDBType_getiter__doc__},
@@ -445,10 +577,6 @@ static PyMethodDef CDBType_methods[] = {
     {"streamgetiter",
      (PyCFunction)CDBType_getiter,              METH_VARARGS,
      CDBType_getiter__doc__},
-
-    {"items",
-     (PyCFunction)CDBType_items,                METH_NOARGS,
-     CDBType_items__doc__},
 
     {"streamitems",
      (PyCFunction)CDBType_streamitems,          METH_NOARGS,
@@ -465,7 +593,7 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     static char *kwlist[] = {"file", NULL};
     PyObject *file_;
     cdbtype_t *self;
-    int fd;
+    int fd, res;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist,
                                      &file_))
@@ -474,19 +602,16 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     if (!(self = GENERIC_ALLOC(type)))
         return NULL;
 
-    if (!(self->cdb32 = PyMem_Malloc(sizeof(*self->cdb32))))
+    self->cdb32 = NULL;
+    self->flags = 0;
+
+    if (-1 == cdbx_obj_as_fd(file_, "rb", NULL, &self->fp, &res, &fd))
         goto error;
+    if (res)
+        self->flags |= FL_FP_OPENED;
 
-    self->cdb32->map = NULL;
-    self->pos_cached = 0;
-    self->length = -1;
-    self->records = -1;
-
-    if (-1 == cdbx_obj_as_fd(file_, "rb", NULL, &self->fp, &self->fp_opened,
-                             &fd))
+    if (-1 == cdbx_cdb32_create(fd, &self->cdb32))
         goto error;
-
-    cdb32_init(self->cdb32, fd);
 
     return (PyObject *)self;
 
@@ -494,6 +619,7 @@ error:
     Py_DECREF(self);
     return NULL;
 }
+
 
 static int
 CDBType_traverse(cdbtype_t *self, visitproc visit, void *arg)
@@ -503,45 +629,43 @@ CDBType_traverse(cdbtype_t *self, visitproc visit, void *arg)
     return 0;
 }
 
+
 static int
 CDBType_clear(cdbtype_t *self)
 {
     PyObject *fp;
-    cdb32_t *cdb32;
 
     if (self->weakreflist)
         PyObject_ClearWeakRefs((PyObject *)self);
 
-    self->pos_cached = 0;
-    self->length = -1;
-    self->records = -1;
+    cdbx_cdb32_destroy(&self->cdb32);
 
     if ((fp = self->fp)) {
         self->fp = NULL;
 
-        if (self->fp_opened) {
+        if (self->flags & FL_FP_OPENED) {
             if (!PyObject_CallMethod(fp, "close", "")) {
                 if (PyErr_ExceptionMatches(PyExc_Exception))
                     PyErr_Clear();
             }
         }
-
         Py_DECREF(fp);
-    }
-
-    if ((cdb32 = self->cdb32)) {
-        self->cdb32 = NULL;
-        cdb32_free(cdb32);
-        PyMem_Free(cdb32);
     }
 
     return 0;
 }
 
+
 DEFINE_GENERIC_DEALLOC(CDBType)
 
+
 PyDoc_STRVAR(CDBType__doc__,
-"CDB(file)");
+"CDB(file)\n\
+\n\
+Create a CDB instance from a file.\n\
+\n\
+'file' can be either a (binary) python stream (providing fileno()) or a\n\
+filename or an integer (representing a filedescriptor).");
 
 PyTypeObject CDBType = {
     PyVarObject_HEAD_INIT(NULL, 0)

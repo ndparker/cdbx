@@ -156,65 +156,6 @@ error:
     return -1;
 }
 
-/*
- * Transform bytes/unicode key to char/len
- *
- * RC(key_) is increased on success. However, *key_ might be replaced (Py2).
- *
- * Return -1 on error
- * Return 0 on success
- */
-int
-cdbx_byte_key(PyObject **key_, char **ckey, cdb32_len_t *csize)
-{
-    Py_ssize_t length;
-    PyObject *key = *key_;
-
-    Py_INCREF(key);
-    if (PyBytes_Check(key)) {
-        if (-1 == PyBytes_AsStringAndSize(key, ckey, &length))
-            goto error;
-    }
-    else if (PyUnicode_Check(key)) {
-#ifdef EXT2
-        PyObject *tmp;
-        if (!(tmp = PyUnicode_AsUTF8String(key)))
-            goto error;
-
-        Py_DECREF(key);
-        *key_ = key = tmp;
-        if (-1 == PyBytes_AsStringAndSize(key, ckey, &length))
-            goto error;
-#else
-        if (!(*ckey = PyUnicode_AsUTF8AndSize(key, &length)))
-            goto error;
-#endif
-    }
-    else {
-        PyErr_SetString(PyExc_TypeError,
-#ifdef EXT2
-        "Key must be a unicode or str object"
-#else
-        "Key must be a str or bytes object"
-#endif
-        );
-        goto error;
-    }
-
-    /* should not happen. But what do I know? */
-    *csize = (cdb32_len_t)length;
-    if ((Py_ssize_t)*csize != length) {
-        PyErr_SetString(PyExc_OverflowError, "Key is too long");
-        goto error;
-    }
-
-    return 0;
-
-error:
-    Py_DECREF(key);
-    return -1;
-}
-
 
 /*
  * set IOError("I/O operation on a closed file") and return NULL

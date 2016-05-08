@@ -60,6 +60,10 @@
 /* Py3K Support */
 #if PY_MAJOR_VERSION >= 3
 
+#if PY_VERSION_HEX >= 0x03040000
+#define TEXT_SIGNATURE
+#endif
+
 #define EXT3
 
 #ifndef Py_TPFLAGS_HAVE_CLASS
