@@ -77,18 +77,16 @@ However, keys and values retrieved from the CDB are always bytes.
     import tempfile
     import cdbx
 
-    with tempfile.TemporaryFile() as fp:
-        cdb = cdbx.CDB.make(fp)
-        cdb.add('key', 'value')
-        # ...
-        cdb = cdb.commit()
-        print(cdb['key'])
-
-    # cdb holds a reference to the file
+    cdb = cdbx.CDB.make(tempfile.TemporaryFile())
+    cdb.add('key', 'value')
+    # ...
+    cdb = cdb.commit()
     print(cdb['key'])
+
     cdb.close()  # or going out-of-scope, or del cdb
 
     # now it's gone
+    print(cdb['key'])
     IOError: I/O operation on a closed file
 
 
