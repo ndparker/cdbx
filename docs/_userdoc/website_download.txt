@@ -1,20 +1,19 @@
 Download
 ~~~~~~~~
 
-.. comment
-    .. begin stable
+.. begin stable
 
-    Current Stable Version
-    ''''''''''''''''''''''
+Current Stable Version
+''''''''''''''''''''''
 
-    - `CHANGES file <http://storage.perlig.de/cdbx/CHANGES-0.1.0>`_
-    - `cdbx-0.1.0.tar.xz <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.xz>`_
-    - `cdbx-0.1.0.tar.bz2 <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.bz2>`_
-    - `cdbx-0.1.0.tar.gz <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.gz>`_
-    - `cdbx-0.1.0.zip <http://storage.perlig.de/cdbx/cdbx-0.1.0.zip>`_
-    - `cdbx-0.1.0.digests <http://storage.perlig.de/cdbx/cdbx-0.1.0.digests>`_
+- `CHANGES file <http://storage.perlig.de/cdbx/CHANGES-0.1.0>`_
+- `cdbx-0.1.0.tar.xz <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.xz>`_
+- `cdbx-0.1.0.tar.bz2 <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.bz2>`_
+- `cdbx-0.1.0.tar.gz <http://storage.perlig.de/cdbx/cdbx-0.1.0.tar.gz>`_
+- `cdbx-0.1.0.zip <http://storage.perlig.de/cdbx/cdbx-0.1.0.zip>`_
+- `cdbx-0.1.0.digests <http://storage.perlig.de/cdbx/cdbx-0.1.0.digests>`_
 
-    .. end stable
+.. end stable
 
 
 .. begin dev
