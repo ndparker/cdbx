@@ -78,6 +78,10 @@
 #define Py_TPFLAGS_HAVE_ITER (0)
 #endif
 
+#ifndef Py_TPFLAGS_HAVE_RICHCOMPARE
+#define Py_TPFLAGS_HAVE_RICHCOMPARE (0)
+#endif
+
 #ifndef Py_TPFLAGS_HAVE_SEQUENCE_IN
 #define Py_TPFLAGS_HAVE_SEQUENCE_IN (0)
 #endif
