@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-  # flake8: noqa  pylint: skip-file
 #
 # cdbx documentation build configuration file
 #
@@ -15,13 +15,15 @@ import sys, os
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.append(os.path.abspath('.'))
+sys.path.append(os.path.abspath('../../'))
 
 # -- General configuration -----------------------------------------------------
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['epydoc_sphinx']
+extensions = [
+    'sphinx.ext.autodoc',
+]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -37,7 +39,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'cdbx'
-copyright = u'2016 Andr\xe9 Malo'
+copyright = u'2016 - 2018 Andr\xe9 Malo'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -98,17 +100,11 @@ rst_prolog = """
 .. |**cdbx**| replace:: :productb:`cdbx`
 """
 
-# -- Options for epydoc extension-----------------------------------------------
-
-epydoc = dict(
-    cdbx=os.path.join(os.path.abspath(os.path.pardir), 'apidoc'),
-)
-
 # -- Options for HTML output ---------------------------------------------------
 
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'classic'
+html_theme = 'default'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

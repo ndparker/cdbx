@@ -1,8 +1,8 @@
 # -*- coding: ascii -*-
-r"""
+u"""
 :Copyright:
 
- Copyright 2016
+ Copyright 2016 - 2018
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,19 +25,10 @@ r"""
 
 CDBx - CDB reimplementation for Python.
 """
-if __doc__:
-    # pylint: disable = redefined-builtin
-    __doc__ = __doc__.encode('ascii').decode('unicode_escape')
-__author__ = r"Andr\xe9 Malo".encode('ascii').decode('unicode_escape')
+__author__ = u"Andr\xe9 Malo"
 __docformat__ = "restructuredtext en"
 __license__ = "Apache License, Version 2.0"
-__version__ = ('0.1.0', False, 2)
+__version__ = '0.1.0'
+__all__ = ['CDB', 'CDBMaker']
 
-from cdbx import _util
-from cdbx import _version
-from cdbx._cdb import CDB  # noqa
-
-#: Version of the package
-version = _version.Version(*__version__)
-
-__all__ = _util.find_public(globals())
+from cdbx._cdb import CDB, CDBMaker  # noqa

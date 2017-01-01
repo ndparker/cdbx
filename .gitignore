@@ -1,12 +1,17 @@
-Makefile
 *.py[cod]
 *.so
+*.egg-info/
+core
 dist
 build
 __pycache__
 docs/_userdoc/_build/
+docs/_userdoc/apidoc/*
 docs/apidoc/
 docs/userdoc/
+docs/coverage/
+docs/gcov/
+docs/website/
 _website/
 *.ebuild
 .sw?
@@ -14,6 +19,7 @@ _website/
 MANIFEST
 
 .tox
+.pytest_cache
 .cache
-.coverage
-docs/coverage/
+.coverage*
+gcov.out

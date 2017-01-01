@@ -5,8 +5,6 @@
 # be loaded. Extensions are loading into the active Python interpreter and may
 # run arbitrary code
 extension-pkg-whitelist=
-    cdbx._cdb
-
 
 # Add files or directories to the blacklist. They should be base names, not
 # paths.
@@ -62,11 +60,11 @@ confidence=
 # --disable=W"
 disable=
     locally-disabled,
+    file-ignored,
 
-    wrong-import-position,
-    using-constant-test,
-    redefined-variable-type,
-    duplicate-code,
+    invalid-name,
+    redefined-argument-from-local,
+    attribute-defined-outside-init,
 
 
 # Enable the message, report, category or checker with the given id(s). You can
@@ -139,8 +137,10 @@ max-module-lines=1500
 # separator` is used to allow tabulation in dicts, etc.: {1  : 1,\n222: 2}.
 # `trailing-comma` allows a space between comma and closing bracket: (a, ).
 # `empty-line` allows space-only lines.
-no-space-check=trailing-comma,
-               dict-separator
+no-space-check=
+    trailing-comma,
+    dict-separator,
+
 
 # Allow the body of a class to be on the same line as the declaration if body
 # contains single statement.

@@ -1,0 +1,17 @@
+[flake8]
+ignore =
+    # module level import not at top of file
+    E402,
+    # do not assign a lambda expression, use a def
+    E731,
+    # line break before binary operator
+    W503,
+
+
+exclude =
+    setup.py
+    .git, __pycache__, docs/
+    build, dist
+
+
+max-complexity = 20

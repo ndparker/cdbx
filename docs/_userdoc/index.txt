@@ -1,5 +1,5 @@
 .. license:
-    Copyright 2016
+    Copyright 2016 - 2018
     André Malo or his licensors, as applicable
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,11 @@ Documentation
 .. toctree::
     :hidden:
 
+    apidoc/index
 
-- :cdbx:`API Documentation </>` (generated)
+
+- :ref:`Documentation Search <search>` (needs javascript)
+- :ref:`API Documentation <apidoc>` (generated)
 
 
 Examples

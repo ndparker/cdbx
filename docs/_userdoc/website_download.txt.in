@@ -62,13 +62,4 @@ the PGP signature of that file. The file is signed by André Malo, Key-ID
     gpg:                 aka "Andre Malo <ndparker@gmx.net>"
 
 
-.. comment
-    Vendor Packages
-    ---------------
-
-    There's a `Gentoo Linux Ebuild
-    <http://storage.perlig.de/cdbx/cdbx-@@VERSION@@.ebuild>`_
-    available.
-
-
 .. vim: ft=rest tw=72

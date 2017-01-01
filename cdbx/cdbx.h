@@ -1,5 +1,5 @@
 /*
- * Copyright 2016
+ * Copyright 2016 - 2018
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,29 +33,29 @@ typedef struct cdbx_cdb32_get_iter_t cdbx_cdb32_get_iter_t;
  */
 typedef struct cdbtype_t cdbtype_t;
 
-extern PyTypeObject CDBType;
+extern EXT_LOCAL PyTypeObject CDBType;
 #define CDBType_Check(op) \
     PyObject_TypeCheck(op, &CDBType)
 #define CDBType_CheckExact(op) \
     ((op)->ob_type == &CDBType)
 
-cdbx_cdb32_t *
+EXT_LOCAL cdbx_cdb32_t *
 cdbx_type_get_cdb32(cdbtype_t *);
 
 
 /*
  * Key iterator
  */
-extern PyTypeObject CDBIterType;
-PyObject *
+extern EXT_LOCAL PyTypeObject CDBIterType;
+EXT_LOCAL PyObject *
 cdbx_iter_new(cdbtype_t *, int, int);
 
 
 /*
  * Maker type
  */
-extern PyTypeObject CDBMakerType;
-PyObject *
+extern EXT_LOCAL PyTypeObject CDBMakerType;
+EXT_LOCAL PyObject *
 cdbx_maker_new(PyTypeObject *, PyObject *);
 
 
@@ -71,14 +71,14 @@ cdbx_maker_new(PyTypeObject *, PyObject *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_create(int, cdbx_cdb32_t **);
 
 
 /*
  * Destroy cdbx_cdb32_t instance
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_destroy(cdbx_cdb32_t **);
 
 
@@ -88,14 +88,14 @@ cdbx_cdb32_destroy(cdbx_cdb32_t **);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_read(cdbx_cdb32_t *, cdbx_cdb32_pointer_t *, PyObject **);
 
 
 /*
  * Return the FD
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_fileno(cdbx_cdb32_t *);
 
 
@@ -107,7 +107,7 @@ cdbx_cdb32_fileno(cdbx_cdb32_t *);
  * Return 1 on success (yes)
  *
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_contains(cdbx_cdb32_t *, PyObject *);
 
 
@@ -117,7 +117,7 @@ cdbx_cdb32_contains(cdbx_cdb32_t *, PyObject *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_count_keys(cdbx_cdb32_t *, Py_ssize_t *);
 
 
@@ -127,7 +127,7 @@ cdbx_cdb32_count_keys(cdbx_cdb32_t *, Py_ssize_t *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_count_records(cdbx_cdb32_t *, Py_ssize_t *);
 
 
@@ -137,7 +137,7 @@ cdbx_cdb32_count_records(cdbx_cdb32_t *, Py_ssize_t *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_get_iter_new(cdbx_cdb32_t *, PyObject *, cdbx_cdb32_get_iter_t **);
 
 
@@ -147,7 +147,7 @@ cdbx_cdb32_get_iter_new(cdbx_cdb32_t *, PyObject *, cdbx_cdb32_get_iter_t **);
  * Return -1 on error
  * Return 0 on success (including exhausted, which emits NULL)
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *, PyObject **);
 
 
@@ -157,7 +157,7 @@ cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *, PyObject **);
  * Return -1 on error
  * Return 0 on success
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_get_iter_destroy(cdbx_cdb32_get_iter_t **);
 
 
@@ -167,14 +167,14 @@ cdbx_cdb32_get_iter_destroy(cdbx_cdb32_get_iter_t **);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_iter_create(cdbx_cdb32_t *, cdbx_cdb32_iter_t **);
 
 
 /*
  * Destroy cdbx_cdb32_iter_t
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_iter_destroy(cdbx_cdb32_iter_t **);
 
 
@@ -190,7 +190,7 @@ cdbx_cdb32_iter_destroy(cdbx_cdb32_iter_t **);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *, cdbx_cdb32_pointer_t **,
                      cdbx_cdb32_pointer_t **, int *);
 
@@ -201,7 +201,7 @@ cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *, cdbx_cdb32_pointer_t **,
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_create(int, cdbx_cdb32_maker_t **);
 
 
@@ -211,14 +211,14 @@ cdbx_cdb32_maker_create(int, cdbx_cdb32_maker_t **);
  * Return -1 on error
  * Return 0 on success
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_maker_destroy(cdbx_cdb32_maker_t **);
 
 
 /*
  * Return the FD
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_fileno(cdbx_cdb32_maker_t *);
 
 
@@ -228,7 +228,7 @@ cdbx_cdb32_maker_fileno(cdbx_cdb32_maker_t *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *, PyObject *, PyObject *);
 
 
@@ -238,7 +238,7 @@ cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *, PyObject *, PyObject *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *);
 
 
@@ -254,7 +254,7 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_unlink(PyObject *);
 
 
@@ -264,14 +264,14 @@ cdbx_unlink(PyObject *);
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_obj_as_fd(PyObject *, char *, PyObject **, PyObject **, int *, int *);
 
 
 /*
  * set IOError("I/O operation on a closed file") and return NULL
  */
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_raise_closed(void);
 
 
@@ -281,7 +281,7 @@ cdbx_raise_closed(void);
  * Return -1 on error
  * Return 0 if no error occured.
  */
-int
+EXT_LOCAL int
 cdbx_fd(PyObject *, int *);
 
 
@@ -292,7 +292,7 @@ cdbx_fd(PyObject *, int *);
  * Return 0 if no error occured. attribute will be NULL if it was simply not
  * found.
  */
-int
+EXT_LOCAL int
 cdbx_attr(PyObject *, const char *, PyObject **);
 
 
@@ -310,7 +310,7 @@ cdbx_attr(PyObject *, const char *, PyObject **);
  * Might be a macro.
  */
 #ifdef EXT3
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_file_open(PyObject *, const char *);
 #else
 #define cdbx_file_open(filename, mode) \

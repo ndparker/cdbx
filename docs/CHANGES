@@ -1,3 +1,10 @@
+Changes with version
+
+ *) Add support for python 3.7
+
+ *) Revise the setup and build system
+
+
 Changes with version 0.1.0
 
  *) First beta release
