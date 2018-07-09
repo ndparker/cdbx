@@ -1,3 +1,8 @@
+Changes with version
+
+ *) Fix setup in C locale
+
+
 Changes with version 0.1.1
 
  *) Add support for python 3.7

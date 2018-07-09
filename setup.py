@@ -44,8 +44,9 @@ import setuptools as _setuptools
 
 def _doc(filename):
     """ Read docs file """
+    args = {} if str is bytes else dict(encoding='utf-8')
     try:
-        with open(_os.path.join('docs', filename)) as fp:
+        with open(_os.path.join('docs', filename), **args) as fp:
             return fp.read()
     except IOError:
         return None
