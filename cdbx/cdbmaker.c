@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018
+ * Copyright 2016 - 2019
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -180,19 +180,19 @@ CDBMakerType_fileno(cdbmaker_t *self)
 
 static PyMethodDef CDBMakerType_methods[] = {
     {"close",
-     (PyCFunction)CDBMakerType_close,           METH_NOARGS,
+     EXT_CFUNC(CDBMakerType_close),           METH_NOARGS,
      CDBMakerType_close__doc__},
 
     {"fileno",
-     (PyCFunction)CDBMakerType_fileno,          METH_NOARGS,
+     EXT_CFUNC(CDBMakerType_fileno),          METH_NOARGS,
      CDBMakerType_fileno__doc__},
 
     {"add",
-    (PyCFunction)CDBMakerType_add,              METH_KEYWORDS | METH_VARARGS,
+    EXT_CFUNC(CDBMakerType_add),              METH_KEYWORDS | METH_VARARGS,
      CDBMakerType_add__doc__},
 
     {"commit",
-     (PyCFunction)CDBMakerType_commit,          METH_KEYWORDS | METH_VARARGS,
+     EXT_CFUNC(CDBMakerType_commit),          METH_KEYWORDS | METH_VARARGS,
      CDBMakerType_commit__doc__},
 
     /* Sentinel */

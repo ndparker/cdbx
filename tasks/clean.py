@@ -51,6 +51,8 @@ def cacheclean(ctx):
         '.tox',
         '.cache',
         'tests/.cache',
+        '.pytest_cache',
+        '.mypy_cache',
     )
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2018
+ * Copyright 2016 - 2019
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -509,77 +509,77 @@ CDBType_new(PyTypeObject *cls, PyObject *args, PyObject *kwds);
 static PyMethodDef CDBType_methods[] = {
 #ifdef METH_COEXIST
     {"__new__",
-     (PyCFunction)CDBType_new,                  METH_COEXIST  |
-                                                METH_STATIC   |
-                                                METH_KEYWORDS |
-                                                METH_VARARGS,
+     EXT_CFUNC(CDBType_new),                  METH_COEXIST  |
+                                              METH_STATIC   |
+                                              METH_KEYWORDS |
+                                              METH_VARARGS,
      CDBType_new__doc__},
 
     {"__len__",
-     (PyCFunction)CDBType_len,                  METH_NOARGS | METH_COEXIST,
+     EXT_CFUNC(CDBType_len),                  METH_NOARGS | METH_COEXIST,
      CDBType_len__doc__},
 
     {"__iter__",
-     (PyCFunction)CDBType_iter,                 METH_NOARGS | METH_COEXIST,
+     EXT_CFUNC(CDBType_iter),                 METH_NOARGS | METH_COEXIST,
      CDBType_iter__doc__},
 
     {"__contains__",
-     (PyCFunction)CDBType_contains,             METH_O | METH_COEXIST,
+     EXT_CFUNC(CDBType_contains),             METH_O | METH_COEXIST,
      CDBType_contains__doc__},
 
     {"__getitem__",
-     (PyCFunction)CDBType_getitem,              METH_O | METH_COEXIST,
+     EXT_CFUNC(CDBType_getitem),              METH_O | METH_COEXIST,
      CDBType_getitem__doc__},
 #endif
 
     {"make",
-     (PyCFunction)CDBType_make,                 METH_CLASS    |
-                                                METH_KEYWORDS |
-                                                METH_VARARGS,
+     EXT_CFUNC(CDBType_make),                 METH_CLASS    |
+                                              METH_KEYWORDS |
+                                              METH_VARARGS,
      CDBType_make__doc__},
 
     {"close",
-     (PyCFunction)CDBType_close,                METH_NOARGS,
+     EXT_CFUNC(CDBType_close),                METH_NOARGS,
      CDBType_close__doc__},
 
     {"fileno",
-     (PyCFunction)CDBType_fileno,               METH_NOARGS,
+     EXT_CFUNC(CDBType_fileno),               METH_NOARGS,
      CDBType_fileno__doc__},
 
     {"has_key",
-    (PyCFunction)CDBType_contains,              METH_O,
+     EXT_CFUNC(CDBType_contains),             METH_O,
      CDBType_has_key__doc__},
 
     {"keys",
-     (PyCFunction)CDBType_keys,                 METH_KEYWORDS |
-                                                METH_VARARGS,
+     EXT_CFUNC(CDBType_keys),                 METH_KEYWORDS |
+                                              METH_VARARGS,
      CDBType_keys__doc__},
 
     {"items",
-     (PyCFunction)CDBType_items,                METH_KEYWORDS |
-                                                METH_VARARGS,
+     EXT_CFUNC(CDBType_items),                METH_KEYWORDS |
+                                              METH_VARARGS,
      CDBType_items__doc__},
 
     {"get",
-     (PyCFunction)CDBType_get,                  METH_KEYWORDS |
-                                                METH_VARARGS,
+     EXT_CFUNC(CDBType_get),                  METH_KEYWORDS |
+                                              METH_VARARGS,
      CDBType_get__doc__},
 
 #if 0
     {"getiter",
-     (PyCFunction)CDBType_getiter,              METH_VARARGS,
+     EXT_CFUNC(CDBType_getiter),              METH_VARARGS,
      CDBType_getiter__doc__},
 
     {"streamget",
-     (PyCFunction)CDBType_get,                  METH_VARARGS,
+     EXT_CFUNC(CDBType_get),                  METH_VARARGS,
      CDBType_get__doc__},
 
     {"streamgetiter",
-     (PyCFunction)CDBType_getiter,              METH_VARARGS,
+     EXT_CFUNC(CDBType_getiter),              METH_VARARGS,
      CDBType_getiter__doc__},
 
     {"streamitems",
-     (PyCFunction)CDBType_streamitems,          METH_NOARGS,
+     EXT_CFUNC(CDBType_streamitems),          METH_NOARGS,
      CDBType_streamitems__doc__},
 #endif
 

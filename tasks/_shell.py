@@ -1,6 +1,6 @@
 # -*- coding: ascii -*-
 #
-# Copyright 2007 - 2018
+# Copyright 2007 - 2019
 # Andr\xe9 Malo or his licensors, as applicable
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,6 +33,8 @@ import re as _re
 import shutil as _shutil
 import sys as _sys
 import tempfile as _tempfile
+
+# pylint: disable = invalid-name
 
 root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
 
@@ -104,6 +106,8 @@ def _make_formatter(*args, **kwargs):
     :Return: Formatter, using either args or kwargs
     :Rtype: callable
     """
+    # pylint: disable = no-else-return
+
     assert not(args and kwargs)
 
     if args:
@@ -308,6 +312,10 @@ def rm_rf(*dest):
     for name in dest:
         name = native(name)
         if _os.path.exists(name):
+            if _os.path.islink(name):
+                _os.unlink(name)
+                continue
+
             for path in files(name, '*'):
                 if not _os.path.islink(native(path)):
                     _os.chmod(native(path), 0o644)

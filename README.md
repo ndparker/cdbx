@@ -28,7 +28,7 @@ Beta.
 
 ## COPYRIGHT AND LICENSE
 
-Copyright 2016 - 2018
+Copyright 2016 - 2019
 André Malo or his licensors, as applicable.
 
 The whole package is distributed under the Apache License Version 2.0.

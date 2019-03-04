@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: ascii -*-
 #
-# Copyright 2016 - 2018
+# Copyright 2016 - 2019
 # Andr\xe9 Malo or his licensors, as applicable
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

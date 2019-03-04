@@ -1,8 +1,8 @@
 # -*- coding: ascii -*-
-r"""
+u"""
 :Copyright:
 
- Copyright 2016 - 2018
+ Copyright 2016 - 2019
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,10 +25,7 @@ r"""
 
 Tests for cdbx.CDB
 """
-if __doc__:
-    # pylint: disable = redefined-builtin
-    __doc__ = __doc__.encode('ascii').decode('unicode_escape')
-__author__ = r"Andr\xe9 Malo".encode('ascii').decode('unicode_escape')
+__author__ = u"Andr\xe9 Malo"
 __docformat__ = "restructuredtext en"
 
 import os as _os

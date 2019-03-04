@@ -1,5 +1,5 @@
 /*
- * Copyright 2006 - 2018
+ * Copyright 2006 - 2019
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,6 +22,7 @@
 #ifndef CEXT_H
 #define CEXT_H
 
+#define LCOV_EXCL_LINE(x) (x)
 #define LCOV_EXCL_LINE_GOTO(x) goto x
 #define LCOV_EXCL_LINE_RETURN(x) return (x)
 #define LCOV_EXCL_START
@@ -62,6 +63,8 @@
 
 #define EXT_DEFINE_VAR    CONCATENATE(var, CONCATENATE(EXT_MODULE, _module))
 
+/* GCC 8 doesn't like the generic (PyCFunction) cast */
+#define EXT_CFUNC(func) ((PyCFunction)(void (*) (void))(func))
 
 /*
  * Link helpers

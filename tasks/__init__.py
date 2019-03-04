@@ -20,6 +20,8 @@ def namespace():
             return self.__x__[name]
 
         def __getattr__(self, name):
+            if name == '__setstate__':
+                raise AttributeError(name)
             try:
                 return self.__x__[name]
             except KeyError:
