@@ -3,7 +3,7 @@
 u"""
 :Copyright:
 
- Copyright 2011 - 2019
+ Copyright 2011 - 2021
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -27,16 +27,11 @@ u"""
 CDBx - CDB reimplementation for Python.
 """
 __author__ = u"Andr\xe9 Malo"
-__docformat__ = "restructuredtext en"
 
 import os as _os
 import posixpath as _posixpath
 
-# pylint: disable = no-name-in-module, import-error
-from distutils import ccompiler as _ccompiler
-from distutils import core as _core
-from distutils import log as _log
-from distutils.command import build_ext as _build_ext
+# pylint: disable = no-name-in-module, import-error, raise-missing-from
 import setuptools as _setuptools
 
 # pylint: disable = invalid-name
@@ -44,6 +39,7 @@ import setuptools as _setuptools
 
 def _doc(filename):
     """ Read docs file """
+    # pylint: disable = unspecified-encoding
     args = {} if str is bytes else dict(encoding='utf-8')
     try:
         with open(_os.path.join('docs', filename), **args) as fp:
@@ -73,13 +69,26 @@ package = dict(
     url='http://opensource.perlig.de/cdbx/',
     classifiers=_lines(_doc('CLASSIFIERS') or ''),
 
-    install_requires=_lines("""
-    """),
+    install_requires=[],
 )
 
 
+class BuildFailed(Exception):
+    """ The build has failed """
+
+
+from distutils.command import build_ext as _build_ext  # pylint: disable = wrong-import-order
+from distutils import errors as _errors  # pylint: disable = wrong-import-order
 class build_ext(_build_ext.build_ext):  # pylint: disable = no-init
     """ Improved extension building code """
+
+    def run(self):
+        """ Unify exception """
+        try:
+            _build_ext.build_ext.run(self)
+        except _errors.DistutilsPlatformError:
+            raise BuildFailed()
+
 
     def build_extension(self, ext):
         """
@@ -116,18 +125,24 @@ class build_ext(_build_ext.build_ext):  # pylint: disable = no-init
             if 'EXT_PACKAGE' not in macros:
                 ext.undef_macros.append('EXT_PACKAGE')
 
-        return _build_ext.build_ext.build_extension(self, ext)
+        try:
+            return _build_ext.build_ext.build_extension(self, ext)
+        except (_errors.CCompilerError, _errors.DistutilsExecError,
+                _errors.DistutilsPlatformError, IOError, ValueError) as e:
+            raise BuildFailed(str(e))
 
 
-class Extension(_core.Extension):
+class Extension(_setuptools.Extension):
     """ improved functionality """
 
     def __init__(self, *args, **kwargs):
         """ Initialization """
+        version = kwargs.pop('version')
         self.depends = []
         if 'depends' in kwargs:
             self.depends = kwargs['depends']
-        _core.Extension.__init__(self, *args, **kwargs)
+        _setuptools.Extension.__init__(self, *args, **kwargs)
+        self.define_macros.append(('EXT_VERSION', version))
 
         # add include path
         included = '.'
@@ -143,7 +158,7 @@ class Extension(_core.Extension):
             self.depends.append(cext_h)
 
 
-EXTENSIONS = [
+EXTENSIONS = lambda v: [
     Extension('cdbx._cdb', [
         "cdbx/main.c",
         "cdbx/cdb32.c",
@@ -155,15 +170,19 @@ EXTENSIONS = [
         "cdbx/cdbx.h",
     ], include_dirs=[
         "cdbx",
-    ])
+    ], version=v)
 ]
 
 
 def setup():
     """ Main """
     # pylint: disable = too-many-branches
+    # pylint: disable = unspecified-encoding
 
-    with open('%(pathname)s/__init__.py' % package) as fp:
+    args = {} if str is bytes else dict(encoding='utf-8')
+    version_file = '%s/%s' % (package['pathname'],
+                              package.get('version_file', '__init__.py'))
+    with open(version_file, **args) as fp:
         for line in fp:  # pylint: disable = redefined-outer-name
             if line.startswith('__version__'):
                 version = line.split('=', 1)[1].strip()
@@ -173,41 +192,48 @@ def setup():
         else:
             raise RuntimeError("Version not found")
 
-    # if 'java' in _sys.platform.lower():
-    #     EXTENSIONS[:] = []
+    kwargs = {}
 
-    if EXTENSIONS:
-        gcov = False
+    extensions = EXTENSIONS(version)
+
+    if extensions:
+        if 'build_ext' in globals():
+            kwargs.setdefault('cmdclass', {})['build_ext'] = build_ext
+        kwargs['ext_modules'] = extensions
+
+        cflags = None
         if _os.environ.get('CFLAGS') is None:
+            from distutils import ccompiler as _ccompiler
+
             compiler = _ccompiler.get_default_compiler()
             try:
                 with open("debug.%s.cflags" % compiler) as fp:
                     cflags = ' '.join([
                         line for line in (line.strip() for line in fp)
                         if line and not line.startswith('#')
-                    ]) or None
+                    ]).split() or None
             except IOError:
                 pass
-            else:
-                if cflags is not None:
-                    # pylint: disable = unsupported-membership-test
-                    if 'coverage' in cflags:
-                        gcov = True
-                    _log.info("Setting CFLAGS to %r", cflags)
-                    _os.environ['CFLAGS'] = cflags
 
-        if gcov:
-            for ext in EXTENSIONS:
-                ext.libraries.append('gcov')
+        if cflags:
+            gcov = 'coverage' in ' '.join(cflags)
+            for ext in extensions:
+                # pylint: disable = attribute-defined-outside-init
+                ext.extra_compile_args = \
+                    getattr(ext, 'extra_compile_args', []) + cflags
+                if gcov:
+                    ext.libraries.append('gcov')
 
-    packages = [package['top']] + [
-        '%s.%s' % (package['top'], item)
-        for item in
-        _setuptools.find_packages(package['pathname'])
-    ]
+    if package.get('packages', True):
+        kwargs['packages'] = [package['top']] + [
+            '%s.%s' % (package['top'], item)
+            for item in
+            _setuptools.find_packages(package['pathname'])
+        ]
+    if package.get('py_modules'):
+        kwargs['py_modules'] = package['py_modules']
 
-    _core.setup(
-        cmdclass={'build_ext': build_ext},
+    _setuptools.setup(
         name=package['name'],
         author=package['author'],
         author_email=package['email'],
@@ -216,11 +242,10 @@ def setup():
         description=package['desc'],
         long_description=package['longdesc'],
         url=package['url'],
-        ext_modules=EXTENSIONS,
         install_requires=package['install_requires'],
-        packages=packages,
         version=version,
         zip_safe=False,
+        **kwargs
     )
 
 

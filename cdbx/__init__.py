@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2016 - 2019
+ Copyright 2016 - 2021
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -26,9 +26,20 @@ u"""
 CDBx - CDB reimplementation for Python.
 """
 __author__ = u"Andr\xe9 Malo"
-__docformat__ = "restructuredtext en"
 __license__ = "Apache License, Version 2.0"
 __version__ = '0.1.2'
 __all__ = ['CDB', 'CDBMaker']
 
-from cdbx._cdb import CDB, CDBMaker  # noqa
+try:
+    from cdbx._cdb import __version__ as _c_version
+except ImportError:
+    _c_version = None
+if _c_version != __version__:
+    raise ImportError(
+        "Could not import cdbx C extension version %r. Found: %r" % (
+            __version__, _c_version
+        )
+    )
+del _c_version
+
+from cdbx._cdb import CDB, CDBMaker

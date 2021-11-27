@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2015 - 2019
+ Copyright 2015 - 2021
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -26,5 +26,3 @@ u"""
 cdbx Unit Tests.
 """
 __author__ = u"Andr\xe9 Malo"
-__docformat__ = "restructuredtext en"
-__license__ = "Apache License, Version 2.0"

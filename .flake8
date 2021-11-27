@@ -5,16 +5,20 @@ ignore =
     E402,
     # line break before binary operator
     W503,
+    # line break after binary operator
+    W504,
     # expected 2 blank lines after class or function definition
     E305,
     # do not assign a lambda expression, use a def
     E731,
     # line too long
     E501,
+    # continuation line unaligned for hanging indent
+    E131,
 
 exclude =
     setup.py
     .git, __pycache__, docs/
     build, dist
 
-max-complexity = 20
+max-complexity = 40

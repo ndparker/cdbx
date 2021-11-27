@@ -1,3 +1,14 @@
+Changes with version
+
+ *) Ensure the extension version is versioned as expected
+
+ *) Increase GCC happiness
+
+ *) Add x86_64, i686 and aarch64 wheels
+
+ *) Update python support: 2.7, 3.6+
+
+
 Changes with version 0.1.2
 
  *) Fix setup in C locale

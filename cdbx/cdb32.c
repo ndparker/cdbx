@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 - 2019
+ * Copyright 2016 - 2021
  * Andr\xe9 Malo or his licensors, as applicable
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -542,8 +542,8 @@ cdb32_hash_mem(const cdb32_key_t *key, cdb32_len_t len)
 static int
 cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
 {
-    cdb32_slot_t slot;
-    cdb32_dlength_t dlength;
+    cdb32_slot_t slot = {0};
+    cdb32_dlength_t dlength = {0};
     int res;
 
     /* If this is the first key, initialize the rest of the structure */
@@ -656,7 +656,7 @@ cdb32_count_records(cdbx_cdb32_t *self)
 {
     cdb32_off_t pos, sentinel;
     cdbx_cdb32_pointer_t pointer;
-    cdb32_dlength_t dlength;
+    cdb32_dlength_t dlength = {0};
     int res;
     Py_ssize_t keys, records;
     cdb32_find_t find;
@@ -742,8 +742,15 @@ cdb32_mmap(cdbx_cdb32_t *self)
     cp = buf + CDB32_SIZEOF_TABLE - CDB32_SIZEOF_LEN;
     sp = buf + CDB32_SIZEOF_OFF;
     while (!(len = CDB32_UNPACK_LEN(cp))) {
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
         if (!(cp > sp))
             break;
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6))
+#pragma GCC diagnostic pop
+#endif
         cp -= CDB32_SIZEOF_OFF + CDB32_SIZEOF_LEN;
     }
     if (len) {
@@ -1129,7 +1136,7 @@ cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *self,
                      int *first_)
 {
     cdb32_find_t find;
-    cdb32_dlength_t dlength;
+    cdb32_dlength_t dlength = {0};
     int res;
 
     if (self->pos < self->cdb32->sentinel) {

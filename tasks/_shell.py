@@ -1,6 +1,6 @@
 # -*- coding: ascii -*-
 #
-# Copyright 2007 - 2019
+# Copyright 2007 - 2021
 # Andr\xe9 Malo or his licensors, as applicable
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,8 +21,9 @@
 
 Shell utilities.
 """
+from __future__ import absolute_import
+
 __author__ = "Andr\xe9 Malo"
-__docformat__ = "restructuredtext en"
 
 import contextlib as _contextlib
 import errno as _errno
@@ -42,6 +43,8 @@ root = _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__)))
 @_contextlib.contextmanager
 def root_dir():
     """ Context manager to change into the root directory """
+    assert root is not None
+
     old = _os.getcwd()
     try:
         _os.chdir(root)
@@ -411,6 +414,7 @@ def dirs(base, wildcard='[!.]*', recursive=1, prune=('.git', '.svn', 'CVS')):
     :Return: Iterator over matching pathnames
     :Rtype: iterable
     """
+    prune = tuple(prune or ())
     for dirpath, dirnames, _ in walk(native(base)):
         for item in prune:
             if item in dirnames:

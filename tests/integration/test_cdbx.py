@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2016 - 2019
+ Copyright 2016 - 2021
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -26,14 +26,13 @@ u"""
 Tests for cdbx.CDB
 """
 __author__ = u"Andr\xe9 Malo"
-__docformat__ = "restructuredtext en"
 
 import os as _os
 import tempfile as _tempfile
 
-import cdbx as _cdbx
-
 from pytest import raises
+
+import cdbx as _cdbx
 
 
 def fix_path(name):
