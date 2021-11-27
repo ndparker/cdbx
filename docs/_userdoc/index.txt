@@ -43,7 +43,7 @@ Examples
 
 Note that everything going in and out of the CDB is bytes. This is
 more relevant for Python 3. Keys and values which are passed as
-(unicode) strings, are converted to bytes using the ASCII codec.
+(unicode) strings, are converted to bytes using the latin-1 codec.
 However, keys and values retrieved from the CDB are always bytes.
 
 

@@ -88,8 +88,8 @@ PyDoc_STRVAR(CDBType_len__doc__,
 \n\
 Count the number of unique keys\n\
 \n\
-:Return: The number of unique keys\n\
-:Rtype: ``int``");
+Returns:\n\
+  int: The number of unique keys");
 
 #ifdef EXT3
 #define PyInt_FromSsize_t PyLong_FromSsize_t
@@ -123,20 +123,20 @@ depending on the `all` flag the value return is either a byte string\n\
 (`all` == False) or a list of byte strings (`all` == True).\n\
 \n\
 Note that in case of a unicode key, it will be transformed to a byte string\n\
-using the ascii encoding.\n\
+using the latin-1 encoding.\n\
 \n\
-:Parameters:\n\
-  `key` : ``bytes``\n\
+Parameters:\n\
+  key (bytes):\n\
     Key to lookup\n\
 \n\
-  `default` : any\n\
+  default:\n\
     Default value to pass back if the key was not found\n\
 \n\
-  `all` : ``bool``\n\
+  all (bool):\n\
     Return all values instead of only the first? Default: False\n\
 \n\
-:Return: The value(s) or the default\n\
-:Rtype: any");
+Returns:\n\
+  The value(s) or the default");
 
 static PyObject *
 CDBType_get(cdbtype_t *self, PyObject *args, PyObject *kwds)
@@ -216,12 +216,12 @@ PyDoc_STRVAR(CDBType_items__doc__,
 \n\
 Create key/value pair iterator\n\
 \n\
-:Parameters:\n\
-  `all` : ``bool``\n\
+Parameters:\n\
+  all (bool):\n\
     Return all (i.e. non-unique-key) items? Default: False\n\
 \n\
-:Return: Iterator over items\n\
-:Rtype: iterable");
+Returns:\n\
+  iterable: Iterator over items");
 
 static PyObject *
 CDBType_items(cdbtype_t *self, PyObject *args, PyObject *kwds)
@@ -253,12 +253,12 @@ PyDoc_STRVAR(CDBType_keys__doc__,
 \n\
 Create key iterator\n\
 \n\
-:Parameters:\n\
-  `all` : ``bool``\n\
+Parameters:\n\
+  all (bool):\n\
     Return all (i.e. non-unique) keys? Default: False\n\
 \n\
-:Return: Iterator over keys\n\
-:Rtype: iterable");
+Returns:\n\
+  iterable: Iterator over keys");
 
 static PyObject *
 CDBType_keys(cdbtype_t *self, PyObject *args, PyObject *kwds)
@@ -291,8 +291,8 @@ PyDoc_STRVAR(CDBType_iter__doc__,
 \n\
 Create an iterator over unique keys - in insertion order\n\
 \n\
-:Return: The key iterator\n\
-:Rtype: iterable");
+Returns:\n\
+  iterable: The key iterator");
 #endif
 
 static PyObject *
@@ -310,13 +310,13 @@ PyDoc_STRVAR(CDBType_make__doc__,
 \n\
 Create a CDB maker instance, which returns a CDB instance when done.\n\
 \n\
-:Parameters:\n\
-  `file` : ``file`` or ``str`` or ``fd``\n\
+Parameters:\n\
+  file (file or str or int):\n\
     Either a (binary) python stream (providing fileno()) or a filename or an\n\
     integer (representing a filedescriptor).\n\
 \n\
-:Return: New maker instance\n\
-:Rtype: `CDBMaker`");
+Returns:\n\
+  CDBMaker: New maker instance");
 
 static PyObject *
 CDBType_make(PyTypeObject *cls, PyObject *args, PyObject *kwds)
@@ -351,8 +351,8 @@ PyDoc_STRVAR(CDBType_fileno__doc__,
 \n\
 Find the underlying file descriptor\n\
 \n\
-:Return: The underlying file descriptor\n\
-:Rtype: ``int``");
+Returns:\n\
+  int: The underlying file descriptor");
 
 #ifdef EXT3
 #define PyInt_FromLong PyLong_FromLong
@@ -389,10 +389,14 @@ PyDoc_STRVAR(CDBType_has_key__doc__,
 Check if the key appears in the CDB.\n\
 \n\
 Note that in case of a unicode key, it will be transformed to a byte string\n\
-using the ascii encoding.\n\
+using the latin-1 encoding.\n\
 \n\
-:Return: Does the key exists?\n\
-:Rtype: ``bool``");
+Parameters:\n\
+  key (str or bytes):\n\
+    Key to look up\n\
+\n\
+Returns:\n\
+  bool: Does the key exist?");
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_contains__doc__,
@@ -401,14 +405,14 @@ PyDoc_STRVAR(CDBType_contains__doc__,
 Check if the key appears in the CDB.\n\
 \n\
 Note that in case of a unicode key, it will be transformed to a byte string\n\
-using the ascii encoding.\n\
+using the latin-1 encoding.\n\
 \n\
-:Parameters:\n\
-  `key` : ``basestring``\n\
+Parameters:\n\
+  key (str or bytes):\n\
     Key to look up\n\
 \n\
-:Return: Does the key exists?\n\
-:Rtype: ``bool``");
+Returns:\n\
+  bool: Does the key exist?");
 #endif
 
 static PyObject *
@@ -429,17 +433,17 @@ PyDoc_STRVAR(CDBType_getitem__doc__,
 Find the first value of the passed key and return the value as bytestring\n\
 \n\
 Note that in case of a unicode key, it will be transformed to a byte string\n\
-using the ascii encoding.\n\
+using the latin-1 encoding.\n\
 \n\
-:Parameters:\n\
-  `key` : ``basestring``\n\
+Parameters:\n\
+  key (str or bytes):\n\
     Key to look up\n\
 \n\
-:Return: The first value of the key\n\
-:Rtype: ``bytes``\n\
+Returns:\n\
+  bytes: The first value of the key\n\
 \n\
-:Exceptions:\n\
-  - `KeyError` : Key not found");
+Raises:\n\
+  KeyError: Key not found");
 #endif
 
 static PyObject *
@@ -493,13 +497,13 @@ PyDoc_STRVAR(CDBType_new__doc__,
 \n\
 Create a CDB instance.\n\
 \n\
-:Parameters:\n\
-  `file` : ``file`` or ``str`` or ``fd``\n\
+Parameters:\n\
+  file (file or str or int):\n\
     Either a (binary) python stream (providing fileno()) or a filename or an\n\
     integer (representing a filedescriptor).\n\
 \n\
-:Return: New CDB instance\n\
-:Rtype: `CDB`");
+Returns:\n\
+  CDB: New CDB instance");
 
 static PyObject *
 CDBType_new(PyTypeObject *cls, PyObject *args, PyObject *kwds);

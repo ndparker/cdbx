@@ -1,5 +1,7 @@
 Changes with version
 
+ *) Documentation fixes
+
  *) Ensure the extension version is versioned as expected
 
  *) Increase GCC happiness

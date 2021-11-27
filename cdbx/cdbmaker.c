@@ -24,7 +24,7 @@
 #define FL_ERROR     (1 << 4)
 
 /*
- * Object structure for CDBType
+ * Object structure for CDBMakerType
  */
 typedef struct {
     PyObject_HEAD
@@ -51,8 +51,8 @@ Commit to the current dataset and finish the CDB creation.\n\
 The `commit` method returns a new CDB instance based on the file just\n\
 committed.\n\
 \n\
-:Return: New CDB instance\n\
-:Rtype: `CDB`");
+Returns:\n\
+  CDB: New CDB instance");
 
 static PyObject *
 CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
@@ -106,13 +106,13 @@ PyDoc_STRVAR(CDBMakerType_add__doc__,
 Add the key/value pair to the CDB-to-be.\n\
 \n\
 Note that in case of a unicode key or value, it will be transformed to a\n\
-byte string using the ascii encoding.\n\
+byte string using the latin-1 encoding.\n\
 \n\
-:Parameters:\n\
-  `key` : ``bytes``\n\
+Parameters:\n\
+  key (str or bytes)\n\
     Key\n\
 \n\
-  `value` : ``bytes``\n\
+  value (str or bytes):\n\
     Value");
 
 static PyObject *
@@ -157,8 +157,8 @@ PyDoc_STRVAR(CDBMakerType_fileno__doc__,
 \n\
 Find underlying file descriptor\n\
 \n\
-:Return: The file descriptor\n\
-:Rtype: ``int``");
+Returns:\n\
+  int: The file descriptor");
 
 #ifdef EXT3
 #define PyInt_FromLong PyLong_FromLong

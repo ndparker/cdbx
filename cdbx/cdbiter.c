@@ -28,7 +28,7 @@ typedef struct {
     PyObject_HEAD
     PyObject *weakreflist;
 
-    cdbtype_t *main;  /* CDB instance, we're attached to */
+    cdbtype_t *main;  /* CDB instance we're attached to */
     cdbx_cdb32_iter_t *iter;  /* Iter state */
 
     int flags;
