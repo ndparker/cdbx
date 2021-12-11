@@ -23,6 +23,8 @@
 #define FL_COMMITTED (1 << 3)
 #define FL_ERROR     (1 << 4)
 #define FL_FP_CLOSE  (1 << 5)
+#define FL_MMAP_SET  (1 << 6)
+#define FL_MMAP_VAL  (1 << 7)
 
 /*
  * Object structure for CDBMakerType
@@ -79,19 +81,22 @@ CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
         return NULL;
     }
 
+    tmp = (self->flags & FL_MMAP_SET) ?
+        ((self->flags & FL_MMAP_VAL) ? Py_True : Py_False) : Py_None;
+
     if (self->filename) {
-        result = PyObject_CallFunction(self->cdb_cls, "(Oi)",
-                                       self->filename, 1);
+        result = PyObject_CallFunction(self->cdb_cls, "(OiO)",
+                                       self->filename, 1, tmp);
         close = 1;
     }
     else if (self->fp) {
-        result = PyObject_CallFunction(self->cdb_cls, "(Oi)", self->fp,
-                                       !!(self->flags & FL_FP_CLOSE));
+        result = PyObject_CallFunction(self->cdb_cls, "(OiO)", self->fp,
+                                       !!(self->flags & FL_FP_CLOSE), tmp);
     }
     else {
-        result = PyObject_CallFunction(self->cdb_cls, "(ii)",
+        result = PyObject_CallFunction(self->cdb_cls, "(iiO)",
                                        cdbx_cdb32_maker_fileno(self->maker32),
-                                       !!(self->flags & FL_FP_CLOSE));
+                                       !!(self->flags & FL_FP_CLOSE), tmp);
     }
     if (!result)
         return NULL;
@@ -326,7 +331,8 @@ EXT_LOCAL PyTypeObject CDBMakerType = {
  * Create new CDBMaker object
  */
 EXT_LOCAL PyObject *
-cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_)
+cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_,
+               PyObject *mmap_)
 {
     cdbmaker_t *self;
     int fd, res;
@@ -350,6 +356,14 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_)
         switch (PyObject_IsTrue(close_)) {
         case -1: goto error;
         case 1: self->flags |= FL_FP_CLOSE;
+        }
+    }
+
+    if (mmap_ && mmap_ != Py_None) {
+        switch (PyObject_IsTrue(mmap_)) {
+        case -1: goto error;
+        case 1: self->flags |= FL_MMAP_VAL; /* fall through */
+        case 0: self->flags |= FL_MMAP_SET; break;
         }
     }
 

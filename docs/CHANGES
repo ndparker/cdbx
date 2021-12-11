@@ -1,5 +1,8 @@
 Changes with version
 
+ *) Add "mmap" flag to the constructor(s), allowing to explicitly enable or
+    disable mmap usage
+
  *) Keep weak references on close()
 
  *) Fix reference leak on failed file close

@@ -306,7 +306,7 @@ CDBType_iter(cdbtype_t *self)
 
 
 PyDoc_STRVAR(CDBType_make__doc__,
-"make(cls, file, close=None)\n\
+"make(cls, file, close=None, mmap=None)\n\
 \n\
 Create a CDB maker instance, which returns a CDB instance when done.\n\
 \n\
@@ -320,20 +320,25 @@ Parameters:\n\
     `file` is a python stream or an integer. If omitted or ``None`` it\n\
     defaults to ``False``. This argument is applied on commit.\n\
 \n\
+  mmap (bool):\n\
+    Access the file by mapping it into memory? If True, mmap is required. If\n\
+    false, mmap is not even tried. If omitted or ``None``, it's attempted but\n\
+    no error on failure. This argument is applied on commit.\n\
+\n\
 Returns:\n\
   CDBMaker: New maker instance");
 
 static PyObject *
 CDBType_make(PyTypeObject *cls, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"file", "close", NULL};
-    PyObject *file_, *close_ = NULL;
+    static char *kwlist[] = {"file", "close", "mmap", NULL};
+    PyObject *file_, *close_ = NULL, *mmap_ = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist,
-                                     &file_, &close_))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", kwlist,
+                                     &file_, &close_, &mmap_))
         return NULL;
 
-    return cdbx_maker_new(cls, file_, close_);
+    return cdbx_maker_new(cls, file_, close_, mmap_);
 }
 
 
@@ -521,7 +526,7 @@ static PyMappingMethods CDBType_as_mapping = {
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_new__doc__,
-"__new__(cls, file, close=None)\n\
+"__new__(cls, file, close=None, mmap=None)\n\
 \n\
 Create a CDB instance.\n\
 \n\
@@ -534,6 +539,11 @@ Parameters:\n\
     Close a passed in file automatically? This argument is only applied if\n\
     `file` is a python stream or an integer. If omitted or ``None`` it\n\
     defaults to ``False``.\n\
+\n\
+  mmap (bool):\n\
+    Access the file by mapping it into memory? If True, mmap is required. If\n\
+    false, mmap is not even tried. If omitted or ``None``, it's attempted but\n\
+    no error on failure.\n\
 \n\
 Returns:\n\
   CDB: New CDB instance");
@@ -627,13 +637,13 @@ static PyMethodDef CDBType_methods[] = {
 static PyObject *
 CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"file", "close", NULL};
-    PyObject *file_, *close_ = NULL;
+    static char *kwlist[] = {"file", "close", "mmap", NULL};
+    PyObject *file_, *close_ = NULL, *mmap_ = NULL;
     cdbtype_t *self;
-    int fd, res;
+    int fd, res, mmap = -1;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist,
-                                     &file_, &close_))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|OO", kwlist,
+                                     &file_, &close_, &mmap_))
         return NULL;
 
     if (!(self = GENERIC_ALLOC(type)))
@@ -654,7 +664,15 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         }
     }
 
-    if (-1 == cdbx_cdb32_create(fd, &self->cdb32))
+    if (mmap_ && mmap_ != Py_None) {
+        switch (PyObject_IsTrue(mmap_)) {
+        case -1: goto error;
+        case 0: mmap = 0; break;
+        case 1: mmap = 1; break;
+        }
+    }
+
+    if (-1 == cdbx_cdb32_create(fd, &self->cdb32, mmap))
         goto error;
 
     return (PyObject *)self;
@@ -697,7 +715,7 @@ DEFINE_GENERIC_DEALLOC(CDBType)
 
 
 PyDoc_STRVAR(CDBType__doc__,
-"CDB(file, close=None)\n\
+"CDB(file, close=None, mmap=None)\n\
 \n\
 Create a CDB instance from a file.\n\
 \n\
@@ -709,7 +727,12 @@ Parameters:\n\
   close (bool):\n\
     Close a passed in file automatically? This argument is only applied if\n\
     `file` is a python stream or an integer. If omitted or ``None`` it\n\
-    defaults to ``False``.");
+    defaults to ``False``.\n\
+\n\
+  mmap (bool):\n\
+    Access the file by mapping it into memory? If True, mmap is required. If\n\
+    false, mmap is not even tried. If omitted or ``None``, it's attempted but\n\
+    no error on failure.");
 
 EXT_LOCAL PyTypeObject CDBType = {
     PyVarObject_HEAD_INIT(NULL, 0)

@@ -713,6 +713,9 @@ cdb32_count_records(cdbx_cdb32_t *self)
  * mmap the cdb file
  *
  * If it doesn't work, ignore. In this case we'll just seek & read later.
+ *
+ * Return -1 on error
+ * Return 0 on success
  */
 
 #ifdef EXT3
@@ -720,7 +723,7 @@ cdb32_count_records(cdbx_cdb32_t *self)
 #define PyInt_FromLong PyLong_FromLong
 #endif
 
-static void
+static int
 cdb32_mmap(cdbx_cdb32_t *self)
 {
     unsigned char *buf, *cp, *sp;
@@ -731,7 +734,7 @@ cdb32_mmap(cdbx_cdb32_t *self)
     int res;
 
     if (!(module = PyImport_ImportModule("mmap")))
-        return;
+        return -1;
 
     if (!(buf = PyMem_Malloc(CDB32_SIZEOF_TABLE)))
         goto error_module;
@@ -739,6 +742,9 @@ cdb32_mmap(cdbx_cdb32_t *self)
     if (-1 == cdb32_read(self, 0, CDB32_SIZEOF_TABLE, buf))
         goto error_buf;
 
+    /* Find the last non-empty table entry, use that to find the end of the
+     * file. Each table entry is a tuple of (offset, length), 4 bytes each.
+     */
     cp = buf + CDB32_SIZEOF_TABLE - CDB32_SIZEOF_LEN;
     sp = buf + CDB32_SIZEOF_OFF;
     while (!(len = CDB32_UNPACK_LEN(cp))) {
@@ -753,20 +759,29 @@ cdb32_mmap(cdbx_cdb32_t *self)
 #endif
         cp -= CDB32_SIZEOF_OFF + CDB32_SIZEOF_LEN;
     }
+
+    /* Seek to the end */
     if (len) {
         cp -= CDB32_SIZEOF_OFF;
         size = CDB32_UNPACK_OFF(cp);
         len *= CDB32_SIZEOF_SLOT;
-        if ((CDB32_MAX_OFF == len) || (CDB32_MAX_OFF - len) < size - 1)
+        if ((CDB32_MAX_OFF == len) || (CDB32_MAX_OFF - len) < size - 1) {
+            PyErr_SetNone(PyExc_OverflowError);
             goto error_buf;
+        }
         size += len;
+
         if (-1 == lseek(self->fd, size - 1, SEEK_SET)
-            || -1 == lseek(self->fd, 0, SEEK_SET))
+            || -1 == lseek(self->fd, 0, SEEK_SET)) {
+            PyErr_SetFromErrno(PyExc_IOError);
             goto error_buf;
+        }
 
         size_ = size;
-        if (size_ > PY_SSIZE_T_MAX)
+        if (size_ > PY_SSIZE_T_MAX) {
+            PyErr_SetNone(PyExc_OverflowError);
             goto error_buf;
+        }
     }
 
     if (-1 == cdbx_attr(module, "mmap", &func) || !func)
@@ -805,12 +820,12 @@ cdb32_mmap(cdbx_cdb32_t *self)
     PyMem_Free(buf);
     Py_DECREF(module);
     if (!tmp)
-        goto error;
+        return -1;
 
 #ifdef EXT2
     if (-1 == PyObject_AsReadBuffer(tmp, &self->map_buf, &self->map_size)) {
         Py_DECREF(tmp);
-        goto error;
+        return -1;
     }
     self->map = tmp;
 #else
@@ -819,7 +834,7 @@ cdb32_mmap(cdbx_cdb32_t *self)
 
         if (-1 == PyObject_GetBuffer(tmp, &view, PyBUF_SIMPLE)) {
             Py_DECREF(tmp);
-            goto error;
+            return -1;
         }
         self->map_buf = view.buf;
         self->map_size = view.len;
@@ -828,7 +843,7 @@ cdb32_mmap(cdbx_cdb32_t *self)
 #endif
     self->map_pointer = self->map_buf;
 
-    return;
+    return 0;
 
 error_kwargs:
     Py_DECREF(kwargs);
@@ -838,8 +853,8 @@ error_buf:
     PyMem_Free(buf);
 error_module:
     Py_DECREF(module);
-error:
-    PyErr_Clear();
+
+    return -1;
 }
 
 #ifdef EXT3
@@ -951,7 +966,7 @@ cdb32_maker_buf_write(cdbx_cdb32_maker_t *self, cdb32_key_t *key,
  * Return 0 on success
  */
 EXT_LOCAL int
-cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_)
+cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_, int mmap)
 {
     cdbx_cdb32_t *self;
 
@@ -965,7 +980,17 @@ cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_)
     self->num_keys = -1;
     self->num_records = -1;
     self->sentinel = 0;
-    cdb32_mmap(self);
+    if (mmap) {
+        if (-1 == cdb32_mmap(self)) {
+            if (mmap == -1) {
+                PyErr_Clear();
+            }
+            else {
+                PyMem_Free(self);
+                return -1;
+            }
+        }
+    }
 
     *cdb32_ = self;
 
@@ -1405,7 +1430,7 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
 
     /*
      * This loop puts all hash slots into their buckets
-     * and their are ordered by insertion order (per bucket)
+     * and they are ordered by insertion order (per bucket)
      */
     slot_list = self->slot_lists;
     index = self->slot_list_index;
@@ -1472,8 +1497,9 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
         /* Write it on disk */
         buf = self->buf;
         for (num_slot = 0; num_slot < max_slots; ++num_slot) {
-            if (((CDB32_WRITE_BUF_SIZE - self->buf_index) <
-                (CDB32_SIZEOF_SLOT)) && (-1 == cdb32_maker_buf_flush(self)))
+            if (((CDB32_WRITE_BUF_SIZE - self->buf_index)
+                  < (CDB32_SIZEOF_SLOT))
+                && (-1 == cdb32_maker_buf_flush(self)))
                 goto error_table;
 
             buf = self->buf + self->buf_index;
