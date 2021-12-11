@@ -32,9 +32,13 @@ cdbx_unlink(PyObject *filename)
     if (!(os = PyImport_ImportModule("os")))
         return -1;
 
-    result = PyObject_CallMethod(os, "unlink", "(O)", filename);
-    res = result ? 0 : -1;
-    Py_DECREF(result);
+    if (!(result = PyObject_CallMethod(os, "unlink", "(O)", filename))) {
+        res = -1;
+    }
+    else {
+        res = 0;
+        Py_DECREF(result);
+    }
 
     Py_DECREF(os);
     return res;

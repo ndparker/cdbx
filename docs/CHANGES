@@ -1,5 +1,7 @@
 Changes with version
 
+ *) Fix crash which could happen when deleting a non-existing file
+
  *) Add "mmap" flag to the constructor(s), allowing to explicitly enable or
     disable mmap usage
 
