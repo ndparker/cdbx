@@ -22,6 +22,7 @@
 #define FL_CLOSED    (1 << 2)
 #define FL_COMMITTED (1 << 3)
 #define FL_ERROR     (1 << 4)
+#define FL_FP_CLOSE  (1 << 5)
 
 /*
  * Object structure for CDBMakerType
@@ -38,8 +39,8 @@ typedef struct {
     int flags;
 } cdbmaker_t;
 
-static int
-CDBMakerType_clear(cdbmaker_t *);
+static PyObject *
+CDBMakerType_close(cdbmaker_t *);
 
 /* -------------------------- BEGIN CDBMakerType ------------------------- */
 
@@ -58,7 +59,8 @@ static PyObject *
 CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
 {
     static char *kwlist[] = {NULL};
-    PyObject *result;
+    PyObject *result, *tmp;
+    int close = 0;
 
     if (!PyArg_ParseTupleAndKeywords(args, kwds, "", kwlist))
         return NULL;
@@ -78,23 +80,33 @@ CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
     }
 
     if (self->filename) {
-        result = PyObject_CallFunction(self->cdb_cls, "(O)", self->filename);
+        result = PyObject_CallFunction(self->cdb_cls, "(Oi)",
+                                       self->filename, 1);
+        close = 1;
     }
     else if (self->fp) {
-        result = PyObject_CallFunction(self->cdb_cls, "(O)", self->fp);
+        result = PyObject_CallFunction(self->cdb_cls, "(Oi)", self->fp,
+                                       !!(self->flags & FL_FP_CLOSE));
     }
     else {
-        result = PyObject_CallFunction(self->cdb_cls, "(i)",
-                                       cdbx_cdb32_maker_fileno(self->maker32));
+        result = PyObject_CallFunction(self->cdb_cls, "(ii)",
+                                       cdbx_cdb32_maker_fileno(self->maker32),
+                                       !!(self->flags & FL_FP_CLOSE));
     }
     if (!result)
         return NULL;
 
     self->flags &= ~FL_DESTROY;
-    if (-1 == CDBMakerType_clear(self)) {
+    if (close)
+        self->flags |= FL_FP_CLOSE;
+    else
+        self->flags &= ~FL_FP_CLOSE;
+
+    if (!(tmp = CDBMakerType_close(self))) {
         Py_DECREF(result);
         return NULL;
     }
+    Py_DECREF(tmp);
 
     return result;
 }
@@ -140,14 +152,51 @@ CDBMakerType_add(cdbmaker_t *self, PyObject *args, PyObject *kwds)
 PyDoc_STRVAR(CDBMakerType_close__doc__,
 "close(self)\n\
 \n\
-Close the CDBMaker and destroy the file (if it was created by the maker)");
+Close the CDBMaker and destroy the file (if it was created by the maker or\n\
+explicitly requested in the constructor)");
 
 static PyObject *
 CDBMakerType_close(cdbmaker_t *self)
 {
-    if (-1 == CDBMakerType_clear(self))
-        return NULL;
+    PyObject *fp, *fname, *result;
+    int res = 0, fd = -1;
 
+    self->flags |= FL_CLOSED;
+
+    if (self->maker32) {
+        fd = cdbx_cdb32_maker_fileno(self->maker32);
+        cdbx_cdb32_maker_destroy(&self->maker32);
+    }
+
+    if ((fp = self->fp)) {
+        self->fp = NULL;
+        if (self->flags & (FL_FP_OPENED | FL_FP_CLOSE)) {
+            if (!(result = PyObject_CallMethod(fp, "close", ""))) {
+                res = -1;
+            }
+            else {
+                Py_DECREF(result);
+                if ((self->flags & FL_DESTROY) && (fname = self->filename)) {
+                    self->filename = NULL;
+                    res = cdbx_unlink(fname);
+                    Py_DECREF(fname);
+                }
+            }
+        }
+        Py_DECREF(fp);
+    }
+    else if (fd >= 0 && (self->flags & FL_FP_CLOSE)) {
+        if ((close(fd) < 0) && errno != EINTR) {
+            PyErr_SetFromErrno(PyExc_OSError);
+            res = -1;
+        }
+        else {
+            res = 0;
+        }
+    }
+
+    if (res == -1)
+        return NULL;
     Py_RETURN_NONE;
 }
 
@@ -214,38 +263,22 @@ CDBMakerType_traverse(cdbmaker_t *self, visitproc visit, void *arg)
 static int
 CDBMakerType_clear(cdbmaker_t *self)
 {
-    PyObject *fp, *fname;
-    int res = 0;
+    PyObject *result;
 
     if (self->weakreflist)
         PyObject_ClearWeakRefs((PyObject *)self);
 
-    self->flags |= FL_CLOSED;
-
-    cdbx_cdb32_maker_destroy(&self->maker32);
-
-    if ((fp = self->fp)) {
-        self->fp = NULL;
-        if (self->flags & FL_FP_OPENED) {
-            if (!PyObject_CallMethod(fp, "close", "")) {
-                if (PyErr_ExceptionMatches(PyExc_Exception))
-                    PyErr_Clear();
-                else
-                    res = -1;
-            }
-            if (self->flags & FL_DESTROY && (fname = self->filename)) {
-                self->filename = NULL;
-                if (-1 == cdbx_unlink(fname))
-                    res = -1;
-                Py_DECREF(fname);
-            }
-        }
-        Py_DECREF(fp);
+    if (!(result = CDBMakerType_close(self))) {
+        PyErr_Clear();
     }
+    else {
+        Py_DECREF(result);
+    }
+
     Py_CLEAR(self->filename);
     Py_CLEAR(self->cdb_cls);
 
-    return res;
+    return 0;
 }
 
 
@@ -293,7 +326,7 @@ EXT_LOCAL PyTypeObject CDBMakerType = {
  * Create new CDBMaker object
  */
 EXT_LOCAL PyObject *
-cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
+cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_)
 {
     cdbmaker_t *self;
     int fd, res;
@@ -312,6 +345,13 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
     if (res)
         self->flags |= FL_FP_OPENED;
     self->flags &= ~FL_CLOSED;
+
+    if (close_) {
+        switch (PyObject_IsTrue(close_)) {
+        case -1: goto error;
+        case 1: self->flags |= FL_FP_CLOSE;
+        }
+    }
 
     if (-1 == cdbx_cdb32_maker_create(fd, &self->maker32))
         goto error;

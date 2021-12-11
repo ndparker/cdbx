@@ -1,5 +1,12 @@
 Changes with version
 
+ *) Keep weak references on close()
+
+ *) Fix reference leak on failed file close
+
+ *) Add "close" flag to the contructor(s) allowing CDB to close the file even if
+    it didn't open it.
+
  *) Documentation fixes
 
  *) Ensure the extension version is versioned as expected

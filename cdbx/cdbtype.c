@@ -306,7 +306,7 @@ CDBType_iter(cdbtype_t *self)
 
 
 PyDoc_STRVAR(CDBType_make__doc__,
-"make(cls, file)\n\
+"make(cls, file, close=None)\n\
 \n\
 Create a CDB maker instance, which returns a CDB instance when done.\n\
 \n\
@@ -315,20 +315,25 @@ Parameters:\n\
     Either a (binary) python stream (providing fileno()) or a filename or an\n\
     integer (representing a filedescriptor).\n\
 \n\
+  close (bool):\n\
+    Close a passed in file automatically? This argument is only applied if\n\
+    `file` is a python stream or an integer. If omitted or ``None`` it\n\
+    defaults to ``False``. This argument is applied on commit.\n\
+\n\
 Returns:\n\
   CDBMaker: New maker instance");
 
 static PyObject *
 CDBType_make(PyTypeObject *cls, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"file", NULL};
-    PyObject *file_;
+    static char *kwlist[] = {"file", "close", NULL};
+    PyObject *file_, *close_ = NULL;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist,
-                                     &file_))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist,
+                                     &file_, &close_))
         return NULL;
 
-    return cdbx_maker_new(cls, file_);
+    return cdbx_maker_new(cls, file_, close_);
 }
 
 
@@ -340,7 +345,30 @@ Close the CDB.");
 static PyObject *
 CDBType_close(cdbtype_t *self)
 {
-    CDBType_clear(self);
+    PyObject *fp, *result;
+    int fd = -1;
+
+    if (self->cdb32) {
+        fd = cdbx_cdb32_fileno(self->cdb32);
+        cdbx_cdb32_destroy(&self->cdb32);
+    }
+
+    if ((fp = self->fp)) {
+        self->fp = NULL;
+
+        if (self->flags & FL_FP_OPENED) {
+            if (!(result = PyObject_CallMethod(fp, "close", ""))) {
+                Py_DECREF(fp);
+                return NULL;
+            }
+            Py_DECREF(result);
+        }
+        Py_DECREF(fp);
+    }
+    else if (fd >= 0 && (self->flags & FL_FP_OPENED)) {
+        if ((close(fd) < 0) && errno != EINTR)
+            return PyErr_SetFromErrno(PyExc_OSError);
+    }
 
     Py_RETURN_NONE;
 }
@@ -493,7 +521,7 @@ static PyMappingMethods CDBType_as_mapping = {
 
 #ifdef METH_COEXIST
 PyDoc_STRVAR(CDBType_new__doc__,
-"__new__(cls, file)\n\
+"__new__(cls, file, close=None)\n\
 \n\
 Create a CDB instance.\n\
 \n\
@@ -501,6 +529,11 @@ Parameters:\n\
   file (file or str or int):\n\
     Either a (binary) python stream (providing fileno()) or a filename or an\n\
     integer (representing a filedescriptor).\n\
+\n\
+  close (bool):\n\
+    Close a passed in file automatically? This argument is only applied if\n\
+    `file` is a python stream or an integer. If omitted or ``None`` it\n\
+    defaults to ``False``.\n\
 \n\
 Returns:\n\
   CDB: New CDB instance");
@@ -594,13 +627,13 @@ static PyMethodDef CDBType_methods[] = {
 static PyObject *
 CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
 {
-    static char *kwlist[] = {"file", NULL};
-    PyObject *file_;
+    static char *kwlist[] = {"file", "close", NULL};
+    PyObject *file_, *close_ = NULL;
     cdbtype_t *self;
     int fd, res;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O", kwlist,
-                                     &file_))
+    if (!PyArg_ParseTupleAndKeywords(args, kwds, "O|O", kwlist,
+                                     &file_, &close_))
         return NULL;
 
     if (!(self = GENERIC_ALLOC(type)))
@@ -613,6 +646,13 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         goto error;
     if (res)
         self->flags |= FL_FP_OPENED;
+
+    if (close_) {
+        switch (PyObject_IsTrue(close_)) {
+        case -1: goto error;
+        case 1: self->flags |= FL_FP_OPENED;
+        }
+    }
 
     if (-1 == cdbx_cdb32_create(fd, &self->cdb32))
         goto error;
@@ -637,23 +677,16 @@ CDBType_traverse(cdbtype_t *self, visitproc visit, void *arg)
 static int
 CDBType_clear(cdbtype_t *self)
 {
-    PyObject *fp;
+    PyObject *result;
 
     if (self->weakreflist)
         PyObject_ClearWeakRefs((PyObject *)self);
 
-    cdbx_cdb32_destroy(&self->cdb32);
-
-    if ((fp = self->fp)) {
-        self->fp = NULL;
-
-        if (self->flags & FL_FP_OPENED) {
-            if (!PyObject_CallMethod(fp, "close", "")) {
-                if (PyErr_ExceptionMatches(PyExc_Exception))
-                    PyErr_Clear();
-            }
-        }
-        Py_DECREF(fp);
+    if (!(result = CDBType_close(self))) {
+        PyErr_Clear();
+    }
+    else {
+        Py_DECREF(result);
     }
 
     return 0;
@@ -664,12 +697,19 @@ DEFINE_GENERIC_DEALLOC(CDBType)
 
 
 PyDoc_STRVAR(CDBType__doc__,
-"CDB(file)\n\
+"CDB(file, close=None)\n\
 \n\
 Create a CDB instance from a file.\n\
 \n\
-'file' can be either a (binary) python stream (providing fileno()) or a\n\
-filename or an integer (representing a filedescriptor).");
+Parameters:\n\
+  file (file or str or int):\n\
+    Either a (binary) python stream (providing fileno()) or a filename or an\n\
+    integer (representing a filedescriptor).\n\
+\n\
+  close (bool):\n\
+    Close a passed in file automatically? This argument is only applied if\n\
+    `file` is a python stream or an integer. If omitted or ``None`` it\n\
+    defaults to ``False``.");
 
 EXT_LOCAL PyTypeObject CDBType = {
     PyVarObject_HEAD_INIT(NULL, 0)

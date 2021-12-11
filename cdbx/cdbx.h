@@ -56,7 +56,7 @@ cdbx_iter_new(cdbtype_t *, int, int);
  */
 extern EXT_LOCAL PyTypeObject CDBMakerType;
 EXT_LOCAL PyObject *
-cdbx_maker_new(PyTypeObject *, PyObject *);
+cdbx_maker_new(PyTypeObject *, PyObject *, PyObject *);
 
 
 /*
