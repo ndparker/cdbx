@@ -52,25 +52,33 @@ CDBIterType_iternext(cdbiter_t *self)
 
     do {
         if (-1 == cdbx_cdb32_iter_next(self->iter, &key_, &value_, &first))
-            return NULL;
+            LCOV_EXCL_LINE_RETURN(NULL);
     } while ((!first && !(self->flags & FL_ALL)) && key_);
 
     if (!key_)
         return NULL;
 
     if (-1 == cdbx_cdb32_read(cdb32, key_, &result))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     if (self->flags & FL_ITEMS) {
         key = result;
         if (-1 == cdbx_cdb32_read(cdb32, value_, &value)) {
+            /* LCOV_EXCL_START */
+
             Py_DECREF(key);
             return NULL;
+
+            /* LCOV_EXCL_STOP */
         }
         if (!(result = PyTuple_New(2))) {
+            /* LCOV_EXCL_START */
+
             Py_DECREF(value);
             Py_DECREF(key);
             return NULL;
+
+            /* LCOV_EXCL_STOP */
         }
         PyTuple_SET_ITEM(result, 0, key);
         PyTuple_SET_ITEM(result, 1, value);
@@ -146,19 +154,23 @@ cdbx_iter_new(cdbtype_t *cdb, int items, int all)
     cdbx_cdb32_t *cdb32;
 
     if (!(self = GENERIC_ALLOC(&CDBIterType)))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     self->main = NULL;
     self->iter = NULL;
     self->flags = 0;
 
     if (!(cdb32 = cdbx_type_get_cdb32(cdb))) {
+        /* LCOV_EXCL_START */
+
         cdbx_raise_closed();
         goto error;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (-1 == cdbx_cdb32_iter_create(cdb32, &self->iter))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     Py_INCREF((PyObject *)cdb);
     self->main = cdb;
@@ -169,9 +181,12 @@ cdbx_iter_new(cdbtype_t *cdb, int items, int all)
 
     return (PyObject *)self;
 
+/* LCOV_EXCL_START */
 error:
     Py_DECREF(self);
     return NULL;
+
+/* LCOV_EXCL_STOP */
 }
 
 /* --------------------------- END CDBIterType --------------------------- */

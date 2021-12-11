@@ -169,7 +169,7 @@ cdb32_cstring(PyObject **key_, cdb32_key_t **ckey_, cdb32_len_t *ckeysize_)
     Py_INCREF(key);
     if (PyBytes_Check(key)) {
         if (-1 == PyBytes_AsStringAndSize(key, &cckey, &length))
-            goto error;
+            LCOV_EXCL_LINE_GOTO(error);
         *ckey_ = (cdb32_key_t *)cckey;
     }
     else if (PyUnicode_Check(key)) {
@@ -180,7 +180,7 @@ cdb32_cstring(PyObject **key_, cdb32_key_t **ckey_, cdb32_len_t *ckeysize_)
         Py_DECREF(key);
         *key_ = key = tmp;
         if (-1 == PyBytes_AsStringAndSize(key, &cckey, &length))
-            goto error;
+            LCOV_EXCL_LINE_GOTO(error);
         *ckey_ = (cdb32_key_t *)cckey;
     }
     else {
@@ -197,8 +197,12 @@ cdb32_cstring(PyObject **key_, cdb32_key_t **ckey_, cdb32_len_t *ckeysize_)
     /* should not happen. But what do I know? */
     *ckeysize_ = (cdb32_len_t)length;
     if ((Py_ssize_t)*ckeysize_ != length) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetString(PyExc_OverflowError, "Key is too long");
         goto error;
+
+        /* LCOV_EXCL_STOP */
     }
 
     return 0;
@@ -234,8 +238,12 @@ cdb32_read_map(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_len_t len,
     else {
         if (offset > self->map_size
             || self->map_size - offset < len) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetString(PyExc_IOError, "Format Error");
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
         self->map_pointer = (const unsigned char *)self->map_buf + offset;
     }
@@ -282,6 +290,8 @@ cdb32_read(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_len_t len,
 
         while (len > 0) {
             switch (res = read(self->fd, buf, len)) {
+
+            /* LCOV_EXCL_START */
             case -1:
                 if (errno == EINTR)
                     continue;
@@ -290,10 +300,17 @@ cdb32_read(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_len_t len,
             case 0:
                 PyErr_SetString(PyExc_IOError, "Format Error");
                 return -1;
+
+            /* LCOV_EXCL_STOP */
+
             default:
                 if ((cdb32_len_t)res > len) {
+                    /* LCOV_EXCL_START */
+
                     PyErr_SetString(PyExc_IOError, "Read Error");
                     return -1;
+
+                    /* LCOV_EXCL_STOP */
                 }
                 len -= (cdb32_len_t)res;
                 buf += res;
@@ -398,11 +415,11 @@ cdb32_cmp_key_map(cdbx_cdb32_t *self, cdb32_off_t offset,
 {
     if (len > 0) {
         if (-1 == cdb32_read_map(self, offset, len, NULL))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         if (self->map_pointer == key)
             return 1;
         if (memcmp(self->map_pointer, key, (size_t)len))
-            return 0;
+            LCOV_EXCL_LINE_RETURN(0);
     }
 
     return 1;
@@ -428,9 +445,9 @@ cdb32_cmp_key_mem(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_key_t *key,
             buflen = len;
 
         if (-1 == cdb32_read(self, offset, buflen, buf))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         if (memcmp(buf, key, (size_t)buflen))
-            return 0;
+            LCOV_EXCL_LINE_RETURN(0);
         offset += buflen;
         key += buflen;
         len -= buflen;
@@ -463,11 +480,11 @@ cdb32_cmp_key_disk(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_off_t key,
             buflen = len;
 
         if (-1 == cdb32_read(self, key, buflen, sbuf))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         if (-1 == cdb32_read(self, offset, buflen, dbuf))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         if (memcmp(sbuf, dbuf, (size_t)buflen))
-            return 0;
+            LCOV_EXCL_LINE_RETURN(0);
         offset += buflen;
         key += buflen;
         len -= buflen;
@@ -494,8 +511,12 @@ cdb32_hash_disk(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_len_t len,
 
     if (len > 0 && offset != CDB32_READ_CURPOS) {
         if (-1 == lseek(self->fd, (off_t)offset, SEEK_SET)) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetFromErrno(PyExc_IOError);
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
     }
 
@@ -504,7 +525,7 @@ cdb32_hash_disk(cdbx_cdb32_t *self, cdb32_off_t offset, cdb32_len_t len,
             buflen = len;
 
         if (-1 == cdb32_read(self, CDB32_READ_CURPOS, buflen, buf))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         len -= buflen;
         key = buf;
         while (buflen--)
@@ -552,7 +573,7 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
             if (self->cdb32->map) {
                 if (-1 == cdb32_read_map(self->cdb32, self->key_disk,
                                          self->length, NULL))
-                    return -1;
+                    LCOV_EXCL_LINE_RETURN(-1);
 
                 self->hash = cdb32_hash_mem(
                     (const cdb32_key_t *)self->cdb32->map_pointer, self->length
@@ -560,7 +581,7 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
             }
             else if (-1 == cdb32_hash_disk(self->cdb32, self->key_disk,
                                            self->length, &self->hash))
-                return -1;
+                LCOV_EXCL_LINE_RETURN(-1);
         }
         else {
             self->hash = cdb32_hash_mem(self->key, self->length);
@@ -568,7 +589,7 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
         CDB32_READ_POINTER(self->cdb32, CDB32_PTR_TABLE(self->hash),
                            &self->table, res);
         if (-1 == res)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         if (!self->table.length) {
             value->offset = 0;
             return 0;
@@ -583,7 +604,7 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
     while (self->key_num < self->table.length) {
         CDB32_READ_SLOT(self->cdb32, self->table_offset, &slot, res);
         if (-1 == res)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
 
         if (!slot.offset) {
             value->offset = 0;
@@ -596,7 +617,7 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
         if (slot.hash == self->hash) {
             CDB32_READ_DLENGTH(self->cdb32, slot.offset, &dlength, res);
             if (-1 == res)
-                return -1;
+                LCOV_EXCL_LINE_RETURN(-1);
             if (dlength.klen == self->length) {
                 if (self->key_disk) {
                     if (self->cdb32->map) {
@@ -627,8 +648,10 @@ cdb32_find(cdb32_find_t *self, cdbx_cdb32_pointer_t *value)
                                             self->key, self->length);
                 }
                 switch (res) {
+                /* LCOV_EXCL_START */
                 case -1:
                     return -1;
+                /* LCOV_EXCL_STOP */
 
                 case 1:
                     value->offset = slot.offset + CDB32_SIZEOF_DLENGTH
@@ -664,7 +687,7 @@ cdb32_count_records(cdbx_cdb32_t *self)
     if (!(sentinel = self->sentinel)) {
         CDB32_READ_SENTINEL(self, res);
         if (-1 == res)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         sentinel = self->sentinel;
     }
 
@@ -674,14 +697,18 @@ cdb32_count_records(cdbx_cdb32_t *self)
 
     while (pos < sentinel) {
         if (!(records < PY_SSIZE_T_MAX)) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetString(PyExc_OverflowError, "Number of keys too big");
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
 
         /* Find key + data length */
         CDB32_READ_DLENGTH(self, pos, &dlength, res);
         if (-1 == res)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         pos += CDB32_SIZEOF_DLENGTH;
 
         find.cdb32 = self;
@@ -690,11 +717,15 @@ cdb32_count_records(cdbx_cdb32_t *self)
         find.key_disk = pos;
         pos += dlength.klen;
         if (-1 == cdb32_find(&find, &pointer))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
 
         if (!pointer.offset) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetString(PyExc_IOError, "Format Error");
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
         ++records;
 
@@ -734,13 +765,13 @@ cdb32_mmap(cdbx_cdb32_t *self)
     int res;
 
     if (!(module = PyImport_ImportModule("mmap")))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
     if (!(buf = PyMem_Malloc(CDB32_SIZEOF_TABLE)))
-        goto error_module;
+        LCOV_EXCL_LINE_GOTO(error_module);
 
     if (-1 == cdb32_read(self, 0, CDB32_SIZEOF_TABLE, buf))
-        goto error_buf;
+        LCOV_EXCL_LINE_GOTO(error_buf);
 
     /* Find the last non-empty table entry, use that to find the end of the
      * file. Each table entry is a tuple of (offset, length), 4 bytes each.
@@ -766,8 +797,12 @@ cdb32_mmap(cdbx_cdb32_t *self)
         size = CDB32_UNPACK_OFF(cp);
         len *= CDB32_SIZEOF_SLOT;
         if ((CDB32_MAX_OFF == len) || (CDB32_MAX_OFF - len) < size - 1) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetNone(PyExc_OverflowError);
             goto error_buf;
+
+            /* LCOV_EXCL_STOP */
         }
         size += len;
 
@@ -779,39 +814,43 @@ cdb32_mmap(cdbx_cdb32_t *self)
 
         size_ = size;
         if (size_ > PY_SSIZE_T_MAX) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetNone(PyExc_OverflowError);
             goto error_buf;
+
+            /* LCOV_EXCL_STOP */
         }
     }
 
     if (-1 == cdbx_attr(module, "mmap", &func) || !func)
         goto error_buf;
     if (!(kwargs = PyDict_New()))
-        goto error_func;
+        LCOV_EXCL_LINE_GOTO(error_func);
 
     if (-1 == cdbx_attr(module, "ACCESS_READ", &tmp) || !tmp)
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
     res = PyDict_SetItemString(kwargs, "access", tmp);
     Py_DECREF(tmp);
     if (-1 == res)
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
 
     if (!(tmp = PyInt_FromLong(self->fd)))
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
     res = PyDict_SetItemString(kwargs, "fileno", tmp);
     Py_DECREF(tmp);
     if (-1 == res)
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
 
     if (!(tmp = PyInt_FromSsize_t((Py_ssize_t)size)))
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
     res = PyDict_SetItemString(kwargs, "length", tmp);
     Py_DECREF(tmp);
     if (-1 == res)
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
 
     if (!(args = PyTuple_New(0)))
-        goto error_kwargs;
+        LCOV_EXCL_LINE_GOTO(error_kwargs);
 
     tmp = PyObject_Call(func, args, kwargs);
     Py_DECREF(args);
@@ -820,12 +859,16 @@ cdb32_mmap(cdbx_cdb32_t *self)
     PyMem_Free(buf);
     Py_DECREF(module);
     if (!tmp)
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
 #ifdef EXT2
     if (-1 == PyObject_AsReadBuffer(tmp, &self->map_buf, &self->map_size)) {
+        /* LCOV_EXCL_START */
+
         Py_DECREF(tmp);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
     self->map = tmp;
 #else
@@ -833,8 +876,12 @@ cdb32_mmap(cdbx_cdb32_t *self)
         Py_buffer view;
 
         if (-1 == PyObject_GetBuffer(tmp, &view, PyBUF_SIMPLE)) {
+            /* LCOV_EXCL_START */
+
             Py_DECREF(tmp);
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
         self->map_buf = view.buf;
         self->map_size = view.len;
@@ -845,10 +892,13 @@ cdb32_mmap(cdbx_cdb32_t *self)
 
     return 0;
 
+/* LCOV_EXCL_START */
 error_kwargs:
     Py_DECREF(kwargs);
 error_func:
     Py_DECREF(func);
+/* LCOV_EXCL_STOP */
+
 error_buf:
     PyMem_Free(buf);
 error_module:
@@ -873,23 +923,30 @@ cdb32_maker_write(int fd, unsigned char *buf, size_t len)
 
     while (len > (size_t)SSIZE_MAX) {
         if (-1 == cdb32_maker_write(fd, buf, (size_t)SSIZE_MAX))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         len -= (size_t)SSIZE_MAX;
         buf += SSIZE_MAX;
     }
 
     while (len > 0) {
         switch (res = write(fd, buf, len)) {
+
+        /* LCOV_EXCL_START */
         case -1:
             if (errno == EINTR)
                 continue;
             PyErr_SetFromErrno(PyExc_IOError);
             return -1;
+        /* LCOV_EXCL_STOP */
 
         default:
             if ((size_t)res > len) {
+                /* LCOV_EXCL_START */
+
                 PyErr_SetString(PyExc_IOError, "Write Error");
                 return -1;
+
+                /* LCOV_EXCL_STOP */
             }
             len -= (size_t)res;
             buf += res;
@@ -931,8 +988,12 @@ cdb32_maker_buf_write(cdbx_cdb32_maker_t *self, cdb32_key_t *key,
 
     if (CDB32_MAX_OFF == len
         || (CDB32_MAX_OFF - len) < self->size - 1) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_OverflowError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     self->size += len;
@@ -949,7 +1010,7 @@ cdb32_maker_buf_write(cdbx_cdb32_maker_t *self, cdb32_key_t *key,
         }
         if (self->buf_index == CDB32_WRITE_BUF_SIZE
             && -1 == cdb32_maker_buf_flush(self))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
     }
 
     if (hash)
@@ -971,8 +1032,12 @@ cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_, int mmap)
     cdbx_cdb32_t *self;
 
     if (!(self = PyMem_Malloc(sizeof *self))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     self->map = NULL;
@@ -1043,14 +1108,16 @@ cdbx_cdb32_contains(cdbx_cdb32_t *self, PyObject *key)
 
     find.cdb32 = self;
     if (-1 == cdb32_find(&find, &value))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     Py_DECREF(key);
     return !!value.offset;
 
+/* LCOV_EXCL_START */
 error:
     Py_DECREF(key);
     return -1;
+/* LCOV_EXCL_STOP */
 }
 
 
@@ -1065,7 +1132,7 @@ cdbx_cdb32_count_keys(cdbx_cdb32_t *self, Py_ssize_t *result)
 {
     if (self->num_keys == -1) {
         if (-1 == cdb32_count_records(self))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
     }
 
     *result = self->num_keys;
@@ -1073,6 +1140,7 @@ cdbx_cdb32_count_keys(cdbx_cdb32_t *self, Py_ssize_t *result)
 }
 
 
+#if 0
 /*
  * Count the number of records (cached)
  *
@@ -1090,6 +1158,7 @@ cdbx_cdb32_count_records(cdbx_cdb32_t *self, Py_ssize_t *result)
     *result = self->num_records;
     return 0;
 }
+#endif
 
 
 /*
@@ -1105,14 +1174,18 @@ cdbx_cdb32_iter_create(cdbx_cdb32_t *cdb32, cdbx_cdb32_iter_t **result)
     int res;
 
     if (!(self = PyMem_Malloc(sizeof *self))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (!cdb32->sentinel) {
         CDB32_READ_SENTINEL(cdb32, res);
         if (-1 == res)
-            goto error;
+            LCOV_EXCL_LINE_GOTO(error);
     }
 
     self->cdb32 = cdb32;
@@ -1121,9 +1194,11 @@ cdbx_cdb32_iter_create(cdbx_cdb32_t *cdb32, cdbx_cdb32_iter_t **result)
 
     return 0;
 
+/* LCOV_EXCL_START */
 error:
     PyMem_Free(self);
     return -1;
+/* LCOV_EXCL_STOP */
 }
 
 
@@ -1168,7 +1243,7 @@ cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *self,
         /* Find key + data length */
         CDB32_READ_DLENGTH(self->cdb32, self->pos, &dlength, res);
         if (-1 == res)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
         self->pos += CDB32_SIZEOF_DLENGTH;
 
         find.cdb32 = self->cdb32;
@@ -1179,11 +1254,15 @@ cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *self,
         self->key.length = dlength.klen;
         self->pos += dlength.klen;
         if (-1 == cdb32_find(&find, &self->value))
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
 
         if (!self->value.offset) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetString(PyExc_IOError, "Format Error");
             return -1;
+
+            /* LCOV_EXCL_STOP */
         }
         *first_ = (self->value.offset == self->pos);
         *key_ = &self->key;
@@ -1218,24 +1297,30 @@ cdbx_cdb32_read(cdbx_cdb32_t *self, cdbx_cdb32_pointer_t *value,
 
     length = (Py_ssize_t)value->length;
     if (length < 0 || (cdb32_off_t)length != value->length) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetString(PyExc_OverflowError, "Value too long");
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (!(result = PyBytes_FromStringAndSize(NULL, length)))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
     if (-1 == cdb32_read(self, value->offset,
                          (cdb32_len_t)PyBytes_GET_SIZE(result),
                          (unsigned char *)PyBytes_AS_STRING(result)))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     *result_ = result;
     return 0;
 
+/* LCOV_EXCL_START */
 error:
     Py_DECREF(result);
     return -1;
+/* LCOV_EXCL_STOP */
 }
 
 
@@ -1254,13 +1339,21 @@ cdbx_cdb32_maker_create(int fd, cdbx_cdb32_maker_t **self_)
     if (-1 == lseek(fd, 0, SEEK_SET)
         || -1 == ftruncate(fd, 0)
         || -1 == lseek(fd, CDB32_SIZEOF_TABLE, SEEK_SET)) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetFromErrno(PyExc_IOError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (!(self = PyMem_Malloc(sizeof *self))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     for (j = 0; j < 256; ++j)
@@ -1328,18 +1421,22 @@ cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *self, PyObject *key, PyObject *value)
     unsigned char *buf;
 
     if ((CDB32_MAX_OFF - CDB32_SIZEOF_DLENGTH) < self->size - 1) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_OverflowError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (-1 == cdb32_cstring(&key, &ckey, &lkey))
         return -1;
     if (-1 == cdb32_cstring(&value, &cvalue, &lvalue))
-        goto error_key;
+        LCOV_EXCL_LINE_GOTO(error_key);
 
     if (((CDB32_WRITE_BUF_SIZE - self->buf_index) <
             (CDB32_SIZEOF_DLENGTH)) && (-1 == cdb32_maker_buf_flush(self)))
-        goto error_value;
+        LCOV_EXCL_LINE_GOTO(error_value);
 
     buf = self->buf + self->buf_index;
     CDB32_PACK_LEN(lkey, buf);
@@ -1358,16 +1455,24 @@ cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *self, PyObject *key, PyObject *value)
     /* Slots will be doubled -> times 2 */
     if ((CDB32_MAX_OFF - (CDB32_SIZEOF_SLOT + CDB32_SIZEOF_SLOT)) <
             self->size - 1) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_OverflowError);
         goto error_value;
+
+        /* LCOV_EXCL_STOP */
     }
     self->size += CDB32_SIZEOF_SLOT + CDB32_SIZEOF_SLOT;
 
     if (!(slot_list = self->slot_lists)
         || !(self->slot_list_index < CDB32_SLOT_LIST_SIZE)) {
         if (!(slot_list = PyMem_Malloc(sizeof *slot_list))) {
+            /* LCOV_EXCL_START */
+
             PyErr_SetNone(PyExc_MemoryError);
             goto error_value;
+
+            /* LCOV_EXCL_STOP */
         }
         self->slot_list_index = 0;
         slot_list->prev = self->slot_lists;
@@ -1381,11 +1486,13 @@ cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *self, PyObject *key, PyObject *value)
     Py_DECREF(key);
     return 0;
 
+/* LCOV_EXCL_START */
 error_value:
     Py_DECREF(value);
 error_key:
     Py_DECREF(key);
     return -1;
+/* LCOV_EXCL_STOP */
 }
 
 
@@ -1413,8 +1520,12 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
      * `starts` contains the offset for each bucket in `sorted` later.
      */
     if (!(starts = PyMem_Malloc(256 * sizeof *starts))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
     for (count=0, max_slots=0, j=0; j < 256; ++j) {
         count += self->slot_counts[j];
@@ -1424,8 +1535,12 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
     }
 
     if (!(sorted = PyMem_Malloc(count * sizeof *sorted))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         goto error_starts;
+
+        /* LCOV_EXCL_STOP */
     }
 
     /*
@@ -1451,8 +1566,12 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
      * which act as end-of-search markers
      */
     if (!(slots = PyMem_Malloc(max_slots * 2 * sizeof *slots))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         goto error_sorted;
+
+        /* LCOV_EXCL_STOP */
     }
 
     /*
@@ -1460,8 +1579,12 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
      * very beginning of the file.
      */
     if (!(tp = table = PyMem_Malloc(CDB32_SIZEOF_TABLE))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         goto error_slots;
+
+        /* LCOV_EXCL_STOP */
     }
 
     /*
@@ -1497,10 +1620,13 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
         /* Write it on disk */
         buf = self->buf;
         for (num_slot = 0; num_slot < max_slots; ++num_slot) {
+
+            /* LCOV_EXCL_START */
             if (((CDB32_WRITE_BUF_SIZE - self->buf_index)
                   < (CDB32_SIZEOF_SLOT))
                 && (-1 == cdb32_maker_buf_flush(self)))
                 goto error_table;
+            /* LCOV_EXCL_STOP */
 
             buf = self->buf + self->buf_index;
             CDB32_PACK_HASH(slots[num_slot].hash, buf);
@@ -1512,13 +1638,14 @@ cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
     }
 
     if (-1 == cdb32_maker_buf_flush(self))
-        goto error_table;
+        LCOV_EXCL_LINE_GOTO(error_table);
+
     if (-1 == lseek(self->fd, 0, SEEK_SET)) {
         PyErr_SetFromErrno(PyExc_IOError);
         goto error_table;
     }
     if (-1 == cdb32_maker_write(self->fd, table, CDB32_SIZEOF_TABLE))
-        goto error_table;
+        LCOV_EXCL_LINE_GOTO(error_table);
 
     PyMem_Free(table);
     PyMem_Free(slots);
@@ -1551,8 +1678,12 @@ cdbx_cdb32_get_iter_new(cdbx_cdb32_t *cdb32, PyObject *key,
     cdbx_cdb32_get_iter_t *result;
 
     if (!(result = PyMem_Malloc(sizeof *result))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetNone(PyExc_MemoryError);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (-1 == cdb32_cstring(&key, &result->find.key, &result->find.length)) {
@@ -1603,7 +1734,7 @@ cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *self, PyObject **value_)
     Py_ssize_t vsize;
 
     if (-1 == cdb32_find(&self->find, &value))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
     if (!value.offset) {
         *value_ = NULL;
         return 0;
@@ -1611,18 +1742,26 @@ cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *self, PyObject **value_)
 
     vsize = (Py_ssize_t)value.length;
     if (vsize < 0 || (cdb32_len_t)vsize != value.length) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetString(PyExc_OverflowError, "Value is too long");
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     if (!(result = PyBytes_FromStringAndSize(NULL, vsize)))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
     if (-1 == cdb32_read(self->find.cdb32, value.offset,
                          (cdb32_len_t)PyBytes_GET_SIZE(result),
                          (cdb32_key_t *)PyBytes_AS_STRING(result))) {
+        /* LCOV_EXCL_START */
+
         Py_DECREF(result);
         return -1;
+
+        /* LCOV_EXCL_STOP */
     }
 
     *value_ = result;

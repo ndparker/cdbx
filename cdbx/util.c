@@ -30,7 +30,7 @@ cdbx_unlink(PyObject *filename)
     int res;
 
     if (!(os = PyImport_ImportModule("os")))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
     if (!(result = PyObject_CallMethod(os, "unlink", "(O)", filename))) {
         res = -1;
@@ -55,7 +55,7 @@ full_filename(PyObject *filename)
     PyObject *os_path, *tmp, *result;
 
     if (!(os_path = PyImport_ImportModule("os.path")))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     if (!(tmp = PyObject_CallMethod(os_path, "abspath", "(O)", filename)))
         goto error;
@@ -91,17 +91,18 @@ cdbx_obj_as_fd(PyObject *file_, char *mode, PyObject **fname_,
 
     /* try fileno(), that would work on open files */
     if (-1 == cdbx_attr(file_, "fileno", &fileno))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
+
     if (fileno) {
         tmp = PyObject_CallFunction(fileno, "");
         Py_DECREF(fileno);
         if (!tmp)
-            goto error;
+            LCOV_EXCL_LINE_GOTO(error);
 
         res = cdbx_fd(tmp, fd_);
         Py_DECREF(tmp);
         if (res == -1)
-            goto error;
+            LCOV_EXCL_LINE_GOTO(error);
 
         *opened = 0;
         *fp_ = file_;
@@ -119,7 +120,7 @@ cdbx_obj_as_fd(PyObject *file_, char *mode, PyObject **fname_,
         res = cdbx_fd(file_, fd_);
         Py_DECREF(file_);
         if (res == -1)
-            return -1;
+            LCOV_EXCL_LINE_RETURN(-1);
 
         *opened = 0;
         *fp_ = NULL;
@@ -138,12 +139,12 @@ cdbx_obj_as_fd(PyObject *file_, char *mode, PyObject **fname_,
         file_ = tmp;
 
         if (!(tmp = PyObject_CallMethod(file_, "fileno", "()")))
-            goto error_fname;
+            LCOV_EXCL_LINE_GOTO(error_fname);
 
         res = cdbx_fd(tmp, fd_);
         Py_DECREF(tmp);
         if (res == -1)
-            goto error_fname;
+            LCOV_EXCL_LINE_GOTO(error_fname);
 
         *opened = 1;
         *fp_ = file_;
@@ -153,8 +154,11 @@ cdbx_obj_as_fd(PyObject *file_, char *mode, PyObject **fname_,
 
     return 0;
 
+/* LCOV_EXCL_START */
 error_fname:
     Py_DECREF(filename);
+/* LCOV_EXCL_STOP */
+
 error:
     Py_DECREF(file_);
     return -1;
@@ -184,7 +188,7 @@ cdbx_file_open(PyObject *filename, const char *mode)
    PyObject *io, *result;
 
     if (!(io = PyImport_ImportModule("io")))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
     result = PyObject_CallMethod(io, "open", "(Os)", filename, mode);
     Py_DECREF(io);
 
@@ -215,7 +219,8 @@ cdbx_fd(PyObject *obj, int *fd)
     }
 #endif
     if (PyErr_Occurred())
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
+
     if (long_int > (long)INT_MAX || long_int < 0L) {
         PyErr_SetNone(PyExc_OverflowError);
         return -1;
@@ -242,15 +247,11 @@ cdbx_attr(PyObject *obj, const char *name, PyObject **attr)
         *attr = result;
         return 0;
     }
-    else if (!PyErr_Occurred()) {
-        *attr = NULL;
-        return 0;
-    }
     else if (PyErr_ExceptionMatches(PyExc_AttributeError)) {
         PyErr_Clear();
         *attr = NULL;
         return 0;
     }
 
-    return -1;
+    LCOV_EXCL_LINE_RETURN(-1);
 }

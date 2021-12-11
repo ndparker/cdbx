@@ -121,6 +121,7 @@ EXT_LOCAL int
 cdbx_cdb32_count_keys(cdbx_cdb32_t *, Py_ssize_t *);
 
 
+#if 0
 /*
  * Count the number of records (cached)
  *
@@ -129,6 +130,7 @@ cdbx_cdb32_count_keys(cdbx_cdb32_t *, Py_ssize_t *);
  */
 EXT_LOCAL int
 cdbx_cdb32_count_records(cdbx_cdb32_t *, Py_ssize_t *);
+# endif
 
 
 /*

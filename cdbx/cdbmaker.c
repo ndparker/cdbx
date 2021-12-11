@@ -77,8 +77,12 @@ CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
     self->flags |= FL_COMMITTED;
 
     if (-1 == fsync(cdbx_cdb32_maker_fileno(self->maker32))) {
+        /* LCOV_EXCL_START */
+
         PyErr_SetFromErrno(PyExc_IOError);
         return NULL;
+
+        /* LCOV_EXCL_STOP */
     }
 
     tmp = (self->flags & FL_MMAP_SET) ?
@@ -99,7 +103,7 @@ CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
                                        !!(self->flags & FL_FP_CLOSE), tmp);
     }
     if (!result)
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     self->flags &= ~FL_DESTROY;
     if (close)
@@ -108,8 +112,12 @@ CDBMakerType_commit(cdbmaker_t *self, PyObject *args, PyObject *kwds)
         self->flags &= ~FL_FP_CLOSE;
 
     if (!(tmp = CDBMakerType_close(self))) {
+        /* LCOV_EXCL_START */
+
         Py_DECREF(result);
         return NULL;
+
+        /* LCOV_EXCL_STOP */
     }
     Py_DECREF(tmp);
 
@@ -177,7 +185,7 @@ CDBMakerType_close(cdbmaker_t *self)
         self->fp = NULL;
         if (self->flags & (FL_FP_OPENED | FL_FP_CLOSE)) {
             if (!(result = PyObject_CallMethod(fp, "close", ""))) {
-                res = -1;
+                res = -1;  /* LCOV_EXCL_LINE */
             }
             else {
                 Py_DECREF(result);
@@ -201,7 +209,7 @@ CDBMakerType_close(cdbmaker_t *self)
     }
 
     if (res == -1)
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
     Py_RETURN_NONE;
 }
 
@@ -274,7 +282,7 @@ CDBMakerType_clear(cdbmaker_t *self)
         PyObject_ClearWeakRefs((PyObject *)self);
 
     if (!(result = CDBMakerType_close(self))) {
-        PyErr_Clear();
+        PyErr_Clear();  /* LCOV_EXCL_LINE */
     }
     else {
         Py_DECREF(result);
@@ -338,7 +346,7 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_,
     int fd, res;
 
     if (!(self = GENERIC_ALLOC(&CDBMakerType)))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     self->maker32 = NULL;
     self->flags = FL_CLOSED | FL_DESTROY;
@@ -368,7 +376,7 @@ cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_, PyObject *close_,
     }
 
     if (-1 == cdbx_cdb32_maker_create(fd, &self->maker32))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     return (PyObject *)self;
 

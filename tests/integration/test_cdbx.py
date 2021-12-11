@@ -29,10 +29,19 @@ __author__ = u"Andr\xe9 Malo"
 
 import os as _os
 import tempfile as _tempfile
+try:
+    import mmap as _mmap
+except ImportError:
+    mmap_param = [-1, None, False]
+else:
+    mmap_param = [-1, None, False, True]
+    del _mmap
 
-from pytest import raises
+from pytest import raises, mark
 
 import cdbx as _cdbx
+
+# pylint: disable = consider-using-with
 
 
 def fix_path(name):
@@ -46,11 +55,14 @@ def fix(name):
         return fp.read()
 
 
-def test_empty():
+@mark.parametrize("mmap", mmap_param)
+def test_empty(mmap):
     """ Create minimum number of keys """
+    kwargs = {} if mmap == -1 else {'mmap': mmap}
+
     fp = _tempfile.TemporaryFile()
     try:
-        cdb = _cdbx.CDB.make(fp).commit()
+        cdb = _cdbx.CDB.make(fp, **kwargs).commit()
         assert len(cdb) == 0
         fp.seek(0)
         assert fp.read() == fix('empty.cdb')
@@ -58,11 +70,14 @@ def test_empty():
         fp.close()
 
 
-def test_empty_key():
+@mark.parametrize("mmap", mmap_param)
+def test_empty_key(mmap):
     """ Create empty keys and value """
+    kwargs = {} if mmap == -1 else {'mmap': mmap}
+
     fp = _tempfile.TemporaryFile()
     try:
-        cdb = _cdbx.CDB.make(fp)
+        cdb = _cdbx.CDB.make(fp, **kwargs)
         for _ in range(10):
             cdb.add("", "")
         cdb = cdb.commit()
@@ -71,10 +86,13 @@ def test_empty_key():
         fp.close()
 
 
-def test_get():
+@mark.parametrize("mmap", mmap_param)
+def test_get(mmap):
     """ Get method """
+    kwargs = {} if mmap == -1 else {'mmap': mmap}
+
     with _tempfile.TemporaryFile() as fp:
-        cdb = _cdbx.CDB.make(fp)
+        cdb = _cdbx.CDB.make(fp, **kwargs)
         cdb.add('a', 'bc')
         cdb.add('def', 'ghij')
         cdb.add('def', 'klmno')
@@ -82,12 +100,14 @@ def test_get():
         cdb.add('b', 'sakdhgjksghf')
         cdb = cdb.commit()
         assert len(cdb) == 3
+        assert cdb.__len__() == 3
         assert cdb['a'] == b'bc'
         assert cdb.get('a') == b'bc'
         assert cdb.get('a', all=True) == [b'bc', b'xxy']
         assert cdb['def'] == b'ghij'
         assert cdb.get('def') == b'ghij'
         assert cdb.get('def', all=True) == [b'ghij', b'klmno']
+        assert list(cdb) == [b'a', b'def', b'b']
 
         with raises(KeyError):
             cdb['c']  # pylint: disable = pointless-statement
@@ -101,20 +121,23 @@ def test_get():
         assert cdb.get('b', all=True) == [b'sakdhgjksghf']
 
 
-def test_random():
+@mark.parametrize("mmap", mmap_param)
+def test_random(mmap):
     """ Test random mapping """
+    kwargs = {} if mmap == -1 else {'mmap': mmap}
+
     fp = _tempfile.TemporaryFile()
     try:
-        cdb = _cdbx.CDB.make(fp)
+        cdb = _cdbx.CDB.make(fp, **kwargs)
         keys = {}
         dump = []
         numkeys = 0
         with open(fix_path('random.txt'), 'rb') as inp:
             while True:
-                c = inp.read(1)
-                if c == b'\n':
+                char = inp.read(1)
+                if char == b'\n':
                     break
-                elif c != b'+':
+                elif char != b'+':
                     raise AssertionError('Format!')
                 klen = int(''.join([
                     x.decode('ascii') for x in iter(lambda: inp.read(1), b',')
@@ -139,6 +162,8 @@ def test_random():
 
         for key, value in keys.items():
             assert cdb[key] == value
+            assert key in cdb
+            assert cdb.__contains__(key)
 
         assert list(sorted(cdb.keys())) == list(sorted(keys))
 
@@ -151,6 +176,7 @@ def test_random():
             nokey += _os.urandom(1)
 
         assert nokey not in cdb
+        assert not cdb.__contains__(nokey)
 
         with raises(KeyError) as e:
             cdb[nokey]  # pylint: disable = pointless-statement

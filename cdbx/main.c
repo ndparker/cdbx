@@ -62,7 +62,7 @@ EXT_INIT_FUNC {
 
     /* Create the module and populate stuff */
     if (!(m = EXT_CREATE(&EXT_DEFINE_VAR)))
-        EXT_INIT_ERROR(NULL);
+        EXT_INIT_ERROR(LCOV_EXCL_LINE(NULL));
 
     EXT_DOC_UNICODE(m);
 

@@ -76,7 +76,7 @@ CDBType_len_ssize_t(cdbtype_t *self)
     }
 
     if (-1 == cdbx_cdb32_count_keys(self->cdb32, &result))
-        return -1;
+        LCOV_EXCL_LINE_RETURN(-1);
 
     return result;
 }
@@ -101,7 +101,7 @@ CDBType_len(cdbtype_t *self)
     Py_ssize_t result;
 
     if (-1 == (result = CDBType_len_ssize_t(self)))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     return PyInt_FromSsize_t(result);
 }
@@ -168,19 +168,20 @@ CDBType_get(cdbtype_t *self, PyObject *args, PyObject *kwds)
         }
     }
     if (all && !(result_list = PyList_New(0)))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     if (-1 == cdbx_cdb32_get_iter_new(self->cdb32, key_, &get_iter))
-        goto error_list;
+        LCOV_EXCL_LINE_GOTO(error_list);
 
     do {
         if (-1 == cdbx_cdb32_get_iter_next(get_iter, &result))
-            goto error_get_iter;
+            LCOV_EXCL_LINE_GOTO(error_get_iter);
+
         if (all && result) {
             res = PyList_Append(result_list, result);
             Py_DECREF(result);
             if (-1 == res)
-                goto error_get_iter;
+                LCOV_EXCL_LINE_GOTO(error_get_iter);
         }
     } while (all && result);
     cdbx_cdb32_get_iter_destroy(&get_iter);
@@ -200,12 +201,15 @@ CDBType_get(cdbtype_t *self, PyObject *args, PyObject *kwds)
     Py_DECREF(default_);
     return result;
 
+    /* LCOV_EXCL_START */
 error_get_iter:
     cdbx_cdb32_get_iter_destroy(&get_iter);
 error_list:
     if (all)
         Py_DECREF(result_list);
 error:
+    /* LCOV_EXCL_STOP */
+
     Py_DECREF(default_);
     return NULL;
 }
@@ -363,8 +367,10 @@ CDBType_close(cdbtype_t *self)
 
         if (self->flags & FL_FP_OPENED) {
             if (!(result = PyObject_CallMethod(fp, "close", ""))) {
+                /* LCOV_EXCL_START */
                 Py_DECREF(fp);
                 return NULL;
+                /* LCOV_EXCL_STOP */
             }
             Py_DECREF(result);
         }
@@ -495,7 +501,7 @@ CDBType_getitem(cdbtype_t *self, PyObject *key)
     res = cdbx_cdb32_get_iter_next(get_iter, &result);
     cdbx_cdb32_get_iter_destroy(&get_iter);
     if (-1 == res)
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     if (!result)
         raise_key_error(key);
@@ -647,7 +653,7 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
         return NULL;
 
     if (!(self = GENERIC_ALLOC(type)))
-        return NULL;
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     self->cdb32 = NULL;
     self->flags = 0;
@@ -673,7 +679,7 @@ CDBType_new(PyTypeObject *type, PyObject *args, PyObject *kwds)
     }
 
     if (-1 == cdbx_cdb32_create(fd, &self->cdb32, mmap))
-        goto error;
+        LCOV_EXCL_LINE_GOTO(error);
 
     return (PyObject *)self;
 
@@ -701,7 +707,7 @@ CDBType_clear(cdbtype_t *self)
         PyObject_ClearWeakRefs((PyObject *)self);
 
     if (!(result = CDBType_close(self))) {
-        PyErr_Clear();
+        PyErr_Clear();  /* LCOV_EXCL_LINE */
     }
     else {
         Py_DECREF(result);
