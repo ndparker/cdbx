@@ -255,7 +255,7 @@ DEFINE_GENERIC_DEALLOC(CDBMakerType)
 PyDoc_STRVAR(CDBMakerType__doc__,
 "CDBMaker - use CDB.make to create instance");
 
-PyTypeObject CDBMakerType = {
+EXT_LOCAL PyTypeObject CDBMakerType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     EXT_MODULE_PATH ".CDBMaker",                        /* tp_name */
     sizeof(cdbmaker_t),                                 /* tp_basicsize */
@@ -292,7 +292,7 @@ PyTypeObject CDBMakerType = {
 /*
  * Create new CDBMaker object
  */
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_maker_new(PyTypeObject *cdb_cls, PyObject *file_)
 {
     cdbmaker_t *self;

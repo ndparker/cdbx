@@ -23,7 +23,7 @@
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_unlink(PyObject *filename)
 {
     PyObject *os, *result;
@@ -73,7 +73,7 @@ error:
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_obj_as_fd(PyObject *file_, char *mode, PyObject **fname_,
                PyObject **fp_, int *opened, int *fd_)
 {
@@ -160,7 +160,7 @@ error:
 /*
  * set IOError("I/O operation on a closed file") and return NULL
  */
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_raise_closed(void)
 {
     PyErr_SetString(PyExc_IOError, "I/O operation on a closed file");
@@ -174,7 +174,7 @@ cdbx_raise_closed(void)
  *
  * Return NULL on error
  */
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_file_open(PyObject *filename, const char *mode)
 {
    PyObject *io, *result;
@@ -195,7 +195,7 @@ cdbx_file_open(PyObject *filename, const char *mode)
  * Return -1 on error
  * Return 0 if no error occured.
  */
-int
+EXT_LOCAL int
 cdbx_fd(PyObject *obj, int *fd)
 {
     long long_int;
@@ -229,7 +229,7 @@ cdbx_fd(PyObject *obj, int *fd)
  * Return 0 if no error occured. attribute will be NULL if it was simply not
  * found.
  */
-int
+EXT_LOCAL int
 cdbx_attr(PyObject *obj, const char *name, PyObject **attr)
 {
     PyObject *result;

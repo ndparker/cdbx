@@ -103,7 +103,7 @@ CDBIterType_clear(cdbiter_t *self)
 
 DEFINE_GENERIC_DEALLOC(CDBIterType)
 
-PyTypeObject CDBIterType = {
+EXT_LOCAL PyTypeObject CDBIterType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     EXT_MODULE_PATH ".CDBIterator",                     /* tp_name */
     sizeof(cdbiter_t),                                  /* tp_basicsize */
@@ -139,7 +139,7 @@ PyTypeObject CDBIterType = {
 /*
  * Create new key iterator object
  */
-PyObject *
+EXT_LOCAL PyObject *
 cdbx_iter_new(cdbtype_t *cdb, int items, int all)
 {
     cdbiter_t *self;

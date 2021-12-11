@@ -69,7 +69,7 @@
 /*
  * Link helpers
  */
-#if __GNUC__ >= 4 && !defined(__MINGW32__)
+#if defined(__GNUC__) && __GNUC__ >= 4 && !defined(__MINGW32__)
     #define EXT_LOCAL __attribute__((visibility("hidden")))
 #else
     #define EXT_LOCAL

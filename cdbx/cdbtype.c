@@ -39,7 +39,7 @@ CDBType_clear(cdbtype_t *);
 /*
  * Return cdb32 struct member
  */
-cdbx_cdb32_t *
+EXT_LOCAL cdbx_cdb32_t *
 cdbx_type_get_cdb32(cdbtype_t *self)
 {
     return self->cdb32;
@@ -667,7 +667,7 @@ Create a CDB instance from a file.\n\
 'file' can be either a (binary) python stream (providing fileno()) or a\n\
 filename or an integer (representing a filedescriptor).");
 
-PyTypeObject CDBType = {
+EXT_LOCAL PyTypeObject CDBType = {
     PyVarObject_HEAD_INIT(NULL, 0)
     EXT_MODULE_PATH ".CDB",                             /* tp_name */
     sizeof(cdbtype_t),                                  /* tp_basicsize */

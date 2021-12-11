@@ -950,7 +950,7 @@ cdb32_maker_buf_write(cdbx_cdb32_maker_t *self, cdb32_key_t *key,
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_)
 {
     cdbx_cdb32_t *self;
@@ -975,7 +975,7 @@ cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_)
 /*
  * Destroy cdbx_cdb32_t instance
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_destroy(cdbx_cdb32_t **cdb32_)
 {
     cdbx_cdb32_t *self;
@@ -992,7 +992,7 @@ cdbx_cdb32_destroy(cdbx_cdb32_t **cdb32_)
 /*
  * Return the FD
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_fileno(cdbx_cdb32_t *self)
 {
     return self->fd;
@@ -1007,7 +1007,7 @@ cdbx_cdb32_fileno(cdbx_cdb32_t *self)
  * Return 1 on success (yes)
  *
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_contains(cdbx_cdb32_t *self, PyObject *key)
 {
     cdb32_find_t find = {0};
@@ -1035,7 +1035,7 @@ error:
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_count_keys(cdbx_cdb32_t *self, Py_ssize_t *result)
 {
     if (self->num_keys == -1) {
@@ -1054,7 +1054,7 @@ cdbx_cdb32_count_keys(cdbx_cdb32_t *self, Py_ssize_t *result)
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_count_records(cdbx_cdb32_t *self, Py_ssize_t *result)
 {
     if (self->num_records == -1) {
@@ -1073,7 +1073,7 @@ cdbx_cdb32_count_records(cdbx_cdb32_t *self, Py_ssize_t *result)
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_iter_create(cdbx_cdb32_t *cdb32, cdbx_cdb32_iter_t **result)
 {
     cdbx_cdb32_iter_t *self;
@@ -1105,7 +1105,7 @@ error:
 /*
  * Destroy cdbx_cdb32_iter_t
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_iter_destroy(cdbx_cdb32_iter_t **self_)
 {
     cdbx_cdb32_iter_t *self;
@@ -1129,7 +1129,7 @@ cdbx_cdb32_iter_destroy(cdbx_cdb32_iter_t **self_)
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *self,
                      cdbx_cdb32_pointer_t **key_,
                      cdbx_cdb32_pointer_t **value_,
@@ -1184,7 +1184,7 @@ cdbx_cdb32_iter_next(cdbx_cdb32_iter_t *self,
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_read(cdbx_cdb32_t *self, cdbx_cdb32_pointer_t *value,
                 PyObject **result_)
 {
@@ -1220,7 +1220,7 @@ error:
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_create(int fd, cdbx_cdb32_maker_t **self_)
 {
     cdbx_cdb32_maker_t *self;
@@ -1257,7 +1257,7 @@ cdbx_cdb32_maker_create(int fd, cdbx_cdb32_maker_t **self_)
  * Return -1 on error
  * Return 0 on success
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_maker_destroy(cdbx_cdb32_maker_t **self_)
 {
     cdbx_cdb32_maker_t *self;
@@ -1279,7 +1279,7 @@ cdbx_cdb32_maker_destroy(cdbx_cdb32_maker_t **self_)
 /*
  * Return the FD
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_fileno(cdbx_cdb32_maker_t *self)
 {
     return self->fd;
@@ -1292,7 +1292,7 @@ cdbx_cdb32_maker_fileno(cdbx_cdb32_maker_t *self)
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_add(cdbx_cdb32_maker_t *self, PyObject *key, PyObject *value)
 {
     cdb32_key_t *ckey, *cvalue;
@@ -1370,7 +1370,7 @@ error_key:
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_maker_commit(cdbx_cdb32_maker_t *self)
 {
     unsigned char *table, *tp, *buf;
@@ -1518,7 +1518,7 @@ error_starts:
  * Return -1 on error
  * Return 0 on success
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_get_iter_new(cdbx_cdb32_t *cdb32, PyObject *key,
                         cdbx_cdb32_get_iter_t **result_)
 {
@@ -1549,7 +1549,7 @@ cdbx_cdb32_get_iter_new(cdbx_cdb32_t *cdb32, PyObject *key,
  * Return -1 on error
  * Return 0 on success
  */
-void
+EXT_LOCAL void
 cdbx_cdb32_get_iter_destroy(cdbx_cdb32_get_iter_t **self_)
 {
     cdbx_cdb32_get_iter_t *self;
@@ -1569,7 +1569,7 @@ cdbx_cdb32_get_iter_destroy(cdbx_cdb32_get_iter_t **self_)
  * Return -1 on error
  * Return 0 on success (including exhausted, which emits NULL)
  */
-int
+EXT_LOCAL int
 cdbx_cdb32_get_iter_next(cdbx_cdb32_get_iter_t *self, PyObject **value_)
 {
     cdbx_cdb32_pointer_t value;
