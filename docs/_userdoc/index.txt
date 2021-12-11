@@ -22,7 +22,7 @@
 |**cdbx**| is a `CDB <https://cr.yp.to/cdb.html>`_ reimplementation for
 Python.
 
-Supported python versions are Python 2.7 and Python 3.3 and above.
+Supported python versions are Python 2.7 and Python 3.6+.
 
 
 Documentation
@@ -80,7 +80,7 @@ However, keys and values retrieved from the CDB are always bytes.
     import tempfile
     import cdbx
 
-    cdb = cdbx.CDB.make(tempfile.TemporaryFile())
+    cdb = cdbx.CDB.make(tempfile.TemporaryFile(), close=True)
     cdb.add('key', 'value')
     # ...
     cdb = cdb.commit()

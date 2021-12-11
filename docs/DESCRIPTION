@@ -4,7 +4,7 @@
 
 CDBx is `CDB`_ reimplementation for Python.
 
-Supported python versions are Python 2.7 and Python 3.3 and above.
+Supported python versions are Python 2.7 and Python 3.6+.
 
 .. _CDB: https://cr.yp.to/cdb.html
 

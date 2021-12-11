@@ -36,6 +36,7 @@ def clean(ctx, so=False, cache=False):
         'dist',
         'wheel/dist',
         ctx.doc.userdoc,
+        ctx.doc.sphinx.build,
         ctx.doc.website.source,
         ctx.doc.website.target,
     )

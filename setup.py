@@ -89,7 +89,6 @@ class build_ext(_build_ext.build_ext):  # pylint: disable = no-init
         except _errors.DistutilsPlatformError:
             raise BuildFailed()
 
-
     def build_extension(self, ext):
         """
         Build C extension - with extended functionality
