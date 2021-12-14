@@ -51,12 +51,12 @@ md5sum (or sha1sum, sha256sum accordingly), e.g.:
 
 In order to check the integrity of the digest file itself, you can check
 the PGP signature of that file. The file is signed by André Malo, Key-ID
-0x8103A37E:
+0x029C942244325167:
 
 .. sourcecode:: console
 
     $ gpg --verify cdbx-@@VERSION@@.digests
-    gpg: Signature made Sat Dec 11 17:32:43 2021 CET
+    gpg: Signature made Tue Dec 14 14:26:42 2021 CET
     gpg:                using RSA key 21B65583FF640D34E8662B6B3DED446369F2EE1A
     gpg: Good signature from "André Malo <nd@perlig.de>"
 
