@@ -1,3 +1,10 @@
+Changes with version
+
+ *) Add support for Python 3.11
+
+ *) Project boilerplate update
+
+
 Changes with version 0.2.1
 
  *) Add tests to source distribution
