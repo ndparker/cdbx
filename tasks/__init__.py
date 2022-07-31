@@ -89,7 +89,7 @@ def namespace():
         pypi=adict(
             # repository='https://test.pypi.org/legacy/',
             repository='https://upload.pypi.org/legacy/',
-            username='ndparker',
+            username='__token__',
         ),
 
         shell=adict((key, value) for key, value in vars(_shell).items()
