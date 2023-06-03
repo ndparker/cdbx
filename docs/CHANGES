@@ -1,3 +1,10 @@
+Changes with version
+
+ *) Add support for Python 3.12
+
+ *) Project boilerplate update
+
+
 Changes with version 0.2.2
 
  *) Add support for Python 3.11
