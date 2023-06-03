@@ -27,8 +27,15 @@ flake8 == 6.0.0; python_version >= "3.8"
 flake8 == 5.0.4; python_version >= "3.6" and python_version < "3.8"
 flake8 == 3.9.2; python_version < "3.6"
 
+black >=21.12b0, <= 23.3.0; python_version >= "3.7"
+black >=21.12b0, <= 22.8.0; python_version ~= "3.6.2"
+
 invoke ~= 2.1.2; python_version >= "3.6"
 invoke == 1.6.0; python_version < "3.6"
 
 Sphinx ~= 7.0.1
 cloud_sptheme ~= 1.10.1
+
+# python <= 3.7 support
+virtualenv <= 20.16.2; python_version < "3.8"
+virtualenv < 20.22; python_version >= "3.8"

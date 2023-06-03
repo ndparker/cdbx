@@ -29,6 +29,7 @@ __author__ = u"Andr\xe9 Malo"
 
 import os as _os
 import tempfile as _tempfile
+
 try:
     import mmap as _mmap
 except ImportError:
@@ -45,19 +46,19 @@ import cdbx as _cdbx
 
 
 def fix_path(name):
-    """ Find fixture """
+    """Find fixture"""
     return _os.path.join(_os.path.dirname(__file__), 'fixtures', name)
 
 
 def fix(name):
-    """ Load fixture """
+    """Load fixture"""
     with open(fix_path(name), 'rb') as fp:
         return fp.read()
 
 
 @mark.parametrize("mmap", mmap_param)
 def test_empty(mmap):
-    """ Create minimum number of keys """
+    """Create minimum number of keys"""
     kwargs = {} if mmap == -1 else {'mmap': mmap}
 
     fp = _tempfile.TemporaryFile()
@@ -72,7 +73,7 @@ def test_empty(mmap):
 
 @mark.parametrize("mmap", mmap_param)
 def test_empty_key(mmap):
-    """ Create empty keys and value """
+    """Create empty keys and value"""
     kwargs = {} if mmap == -1 else {'mmap': mmap}
 
     fp = _tempfile.TemporaryFile()
@@ -88,7 +89,7 @@ def test_empty_key(mmap):
 
 @mark.parametrize("mmap", mmap_param)
 def test_get(mmap):
-    """ Get method """
+    """Get method"""
     kwargs = {} if mmap == -1 else {'mmap': mmap}
 
     with _tempfile.TemporaryFile() as fp:
@@ -123,7 +124,7 @@ def test_get(mmap):
 
 @mark.parametrize("mmap", mmap_param)
 def test_random(mmap):
-    """ Test random mapping """
+    """Test random mapping"""
     kwargs = {} if mmap == -1 else {'mmap': mmap}
 
     fp = _tempfile.TemporaryFile()
@@ -139,12 +140,22 @@ def test_random(mmap):
                     break
                 elif char != b'+':
                     raise AssertionError('Format!')
-                klen = int(''.join([
-                    x.decode('ascii') for x in iter(lambda: inp.read(1), b',')
-                ]))
-                vlen = int(''.join([
-                    x.decode('ascii') for x in iter(lambda: inp.read(1), b':')
-                ]))
+                klen = int(
+                    ''.join(
+                        [
+                            x.decode('ascii')
+                            for x in iter(lambda: inp.read(1), b',')
+                        ]
+                    )
+                )
+                vlen = int(
+                    ''.join(
+                        [
+                            x.decode('ascii')
+                            for x in iter(lambda: inp.read(1), b':')
+                        ]
+                    )
+                )
                 key = inp.read(klen)
                 assert inp.read(2) == b'->'
                 value = inp.read(vlen)

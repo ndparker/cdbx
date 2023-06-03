@@ -30,13 +30,18 @@ if bytes is not str:
 
 for j in range(int(_sys.argv[1])):
     klen = ord(_os.urandom(1).decode('latin-1'))
-    vlen = (
-        ord(_os.urandom(1).decode('latin-1')) << 8
-        | ord(_os.urandom(1).decode('latin-1'))
+    vlen = ord(_os.urandom(1).decode('latin-1')) << 8 | ord(
+        _os.urandom(1).decode('latin-1')
     )
-    fp.write(("+%s,%s:%s->%s\n" % (
-        klen, vlen,
-        _os.urandom(klen).decode('latin-1'),
-        _os.urandom(vlen).decode('latin-1'),
-    )).encode('latin-1'))
+    fp.write(
+        (
+            "+%s,%s:%s->%s\n"
+            % (
+                klen,
+                vlen,
+                _os.urandom(klen).decode('latin-1'),
+                _os.urandom(vlen).decode('latin-1'),
+            )
+        ).encode('latin-1')
+    )
 fp.write(b"\n")

@@ -38,7 +38,7 @@ import cdbx as _cdbx
 
 
 def test_closed():
-    """ bail if closed """
+    """bail if closed"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     make.add('foo', 'bar')
     cdb = make.commit()
@@ -53,7 +53,7 @@ def test_closed():
 
 
 def test_weakref():
-    """ weakref handling """
+    """weakref handling"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     make.add('foo', 'bar')
     cdb = make.commit()

@@ -36,9 +36,8 @@ except ImportError:
     _c_version = None
 if _c_version != __version__:
     raise ImportError(
-        "Could not import cdbx C extension version %r. Found: %r" % (
-            __version__, _c_version
-        )
+        "Could not import cdbx C extension version %r. Found: %r"
+        % (__version__, _c_version)
     )
 del _c_version
 

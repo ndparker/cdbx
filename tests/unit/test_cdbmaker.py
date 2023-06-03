@@ -40,18 +40,18 @@ import cdbx as _cdbx
 
 
 def fix_path(name):
-    """ Find fixture """
+    """Find fixture"""
     return _os.path.join(_os.path.dirname(__file__), 'fixtures', name)
 
 
 def fix(name):
-    """ Load fixture """
+    """Load fixture"""
     with open(fix_path(name), 'rb') as fp:
         return fp.read()
 
 
 def test_closed():
-    """ Bail on closed maker """
+    """Bail on closed maker"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     make.close()
 
@@ -76,17 +76,19 @@ def test_closed():
 
 
 def test_commit_args():
-    """ add() args error handling """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)) \
-            as make:
+    """add() args error handling"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
+    ) as make:
         with raises(TypeError):
             make.commit(lah='luh')
 
 
 def test_add_args():
-    """ add() args error handling """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)) \
-            as make:
+    """add() args error handling"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
+    ) as make:
         with raises(TypeError):
             make.add(lah='luh')
 
@@ -98,14 +100,14 @@ def test_add_args():
 
 
 def test_fileno():
-    """ fileno() works as expected """
+    """fileno() works as expected"""
     fp = _tempfile.TemporaryFile()
     with closing(_cdbx.CDB.make(fp, close=True)) as make:
         assert make.fileno() == fp.fileno()
 
 
 def test_fd():
-    """ fd handling """
+    """fd handling"""
     fp = _tempfile.TemporaryFile()
     make = _cdbx.CDB.make(fp.fileno())
     make.add('foo', 'bar')
@@ -123,7 +125,7 @@ def test_fd():
 
 
 def test_filename(tmpdir):
-    """ filename handling """
+    """filename handling"""
     fname = _os.path.join(str(tmpdir), 'foo.cdb')
     make = _cdbx.CDB.make(fname)
 
@@ -133,13 +135,13 @@ def test_filename(tmpdir):
 
 
 def test_new_badfile():
-    """ __new__() args error handling """
+    """__new__() args error handling"""
     with raises((TypeError, AttributeError)):
         _cdbx.CDB.make(object())
 
 
 def test_weakref():
-    """ weakref handling """
+    """weakref handling"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     proxy = _weakref.proxy(make)
 

@@ -112,6 +112,7 @@ def namespace():
             compile,
             deps,
             doc,
+            format,
             test,
             upload,
         )

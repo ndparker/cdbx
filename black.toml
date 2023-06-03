@@ -1,0 +1,13 @@
+[tool.black]
+skip-string-normalization = true
+line-length = 78
+# target-version = ['py39']
+include='''
+(
+    cdbx/.*\.py
+|   tests/.*\.py
+|   scripts/.*\.py
+)$
+'''
+# extend-exclude='''
+# '''

@@ -43,18 +43,18 @@ from .. import _util as _test
 
 
 def fix_path(name):
-    """ Find fixture """
+    """Find fixture"""
     return _os.path.join(_os.path.dirname(__file__), 'fixtures', name)
 
 
 def fix(name):
-    """ Load fixture """
+    """Load fixture"""
     with open(fix_path(name), 'rb') as fp:
         return fp.read()
 
 
 def test_closed():
-    """ Bail on closed DB """
+    """Bail on closed DB"""
     cdb = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     cdb.close()
 
@@ -89,9 +89,10 @@ def test_closed():
 
 
 def test_get_args():
-    """ get() args error handling """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(),
-                                close=True).commit()) as cdb:
+    """get() args error handling"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
+    ) as cdb:
         with raises(TypeError):
             cdb.get(nope='wrong')
 
@@ -101,9 +102,10 @@ def test_get_args():
 
 
 def test_items_args():
-    """ items() args error handling """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(),
-                                close=True).commit()) as cdb:
+    """items() args error handling"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
+    ) as cdb:
         with raises(TypeError):
             cdb.items(nope='wrong')
 
@@ -113,9 +115,10 @@ def test_items_args():
 
 
 def test_keys_args():
-    """ keys() args error handling """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(),
-                                close=True).commit()) as cdb:
+    """keys() args error handling"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
+    ) as cdb:
         with raises(TypeError):
             cdb.keys(nope='wrong')
 
@@ -125,7 +128,7 @@ def test_keys_args():
 
 
 def test_make_args():
-    """ make() args error handling """
+    """make() args error handling"""
     with raises(TypeError):
         _cdbx.CDB.make(duh='dah')
 
@@ -139,7 +142,7 @@ def test_make_args():
 
 
 def test_new_args():
-    """ __new__() args error handling """
+    """__new__() args error handling"""
     with raises(TypeError):
         _cdbx.CDB(duh='dah')
 
@@ -159,16 +162,17 @@ def test_new_args():
 
 
 def test_fileno():
-    """ fileno() works as expected """
+    """fileno() works as expected"""
     fp = _tempfile.TemporaryFile()
     with closing(_cdbx.CDB.make(fp, close=True).commit()) as cdb:
         assert cdb.fileno() == fp.fileno()
 
 
 def test_getitem_badstring():
-    """ getitem() bails on bad string """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(),
-                                close=True).commit()) as cdb:
+    """getitem() bails on bad string"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
+    ) as cdb:
         with raises(TypeError):
             # pylint: disable = expression-not-assigned
             cdb[object()]
@@ -178,9 +182,10 @@ def test_getitem_badstring():
 
 
 def test_contains_badstring():
-    """ __contains__() bails on bad string """
-    with closing(_cdbx.CDB.make(_tempfile.TemporaryFile(),
-                                close=True).commit()) as cdb:
+    """__contains__() bails on bad string"""
+    with closing(
+        _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
+    ) as cdb:
         with raises(TypeError):
             # pylint: disable = expression-not-assigned
             object() in cdb
@@ -190,13 +195,13 @@ def test_contains_badstring():
 
 
 def test_new_badfile():
-    """ __new__() args error handling """
+    """__new__() args error handling"""
     with raises((TypeError, AttributeError)):
         _cdbx.CDB(object())
 
 
 def test_fd():
-    """ fd handling """
+    """fd handling"""
     fp = _tempfile.TemporaryFile()
     make = _cdbx.CDB.make(fp)
     make.add('foo', 'bar')
@@ -222,13 +227,14 @@ def test_fd():
 
 
 def test_bad_mmap():
-    """ Fake bad mmap module """
+    """Fake bad mmap module"""
+
     class Fake(object):
-        """ Hell raiser """
+        """Hell raiser"""
 
         @property
         def mmap(self):
-            """ well... """
+            """well..."""
             raise RuntimeError("Huh")
 
     with _test.patched_import('mmap', Fake()):
@@ -246,7 +252,7 @@ def test_bad_mmap():
 
 
 def test_new_filename(tmpdir):
-    """ __new__() filename handling """
+    """__new__() filename handling"""
     fname = _os.path.join(str(tmpdir), 'cdbtype_new_filename.cdb')
     cdb = _cdbx.CDB.make(fname).commit()
 
@@ -264,7 +270,7 @@ def test_new_filename(tmpdir):
 
 
 def test_weakref():
-    """ weakref handling """
+    """weakref handling"""
     cdb = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     proxy = _weakref.proxy(cdb)
 
