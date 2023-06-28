@@ -101,6 +101,10 @@ def patched_import(what, how=_unset):
 
         def find_spec(self, name, path=None, target=None):
             """Find spec (Python 3.10+)"""
+            # pylint: disable = unused-argument
+            if name != self.name:
+                return None
+
             from importlib import util
 
             return util.spec_from_loader(name, self)
