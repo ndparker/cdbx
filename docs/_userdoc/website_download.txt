@@ -45,7 +45,7 @@ the PGP signature of that file. The file is signed by André Malo, Key-ID
 .. sourcecode:: console
 
     $ gpg --verify cdbx-0.2.3.digests
-    gpg: Signature made Sun Jul 31 14:07:52 2022 CEST
+    gpg: Signature made Tue Oct  3 14:20:56 2023 CEST
     gpg:                using RSA key 21B65583FF640D34E8662B6B3DED446369F2EE1A
     gpg: Good signature from "André Malo <nd@perlig.de>"
 
