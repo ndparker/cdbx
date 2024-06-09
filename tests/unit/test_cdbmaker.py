@@ -108,10 +108,11 @@ def test_fileno():
 
 def test_fd():
     """fd handling"""
-    fp = _tempfile.TemporaryFile()
-    make = _cdbx.CDB.make(fp.fileno())
-    make.add('foo', 'bar')
-    cdb = make.commit()
+    with _tempfile.TemporaryFile() as fp:
+        make = _cdbx.CDB.make(fp.fileno())
+        make.add('foo', 'bar')
+        cdb = make.commit()
+
     assert cdb['foo'] == b'bar'
     cdb.close()
 

@@ -123,6 +123,15 @@ def patched_import(what, how=_unset):
             _sys.modules[fullname] = self.module
             return self.module
 
+        def create_module(self, spec):
+            """Create module"""
+            if _is_exc(self.module):
+                raise self.module
+            return self.module
+
+        def exec_module(self, module):
+            """Execute module"""
+
     realmodules = _sys.modules.copy()
     try:
         obj = FinderLoader(what, mock.MagicMock() if how is _unset else how)
