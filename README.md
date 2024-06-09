@@ -17,7 +17,7 @@ TABLE OF CONTENTS
 
 **cdbx** is a [CDB](https://cr.yp.to/cdb.html) reimplementation for Python.
 
-* [Change Log](docs/CHANGES)
+* [Change Log](CHANGES)
 * [Development](docs/DEVELOPMENT.md)
 
 
