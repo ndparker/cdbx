@@ -56,7 +56,7 @@ package = dict(
     longdesc=_doc('DESCRIPTION'),
     author=__author__,
     email='nd@perlig.de',
-    url='http://opensource.perlig.de/cdbx/',
+    url='https://opensource.perlig.de/cdbx/',
     license="Apache License, Version 2.0",
     license_files=["LICENSE"],
 
