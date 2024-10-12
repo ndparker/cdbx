@@ -7,12 +7,12 @@ Download
     Current Stable Version
     ''''''''''''''''''''''
 
-    - `CHANGES file <http://storage.perlig.de/cdbx/CHANGES-0.2.3>`_
-    - `cdbx-0.2.3.tar.xz <http://storage.perlig.de/cdbx/cdbx-0.2.3.tar.xz>`_
-    - `cdbx-0.2.3.tar.bz2 <http://storage.perlig.de/cdbx/cdbx-0.2.3.tar.bz2>`_
-    - `cdbx-0.2.3.tar.gz <http://storage.perlig.de/cdbx/cdbx-0.2.3.tar.gz>`_
-    - `cdbx-0.2.3.zip <http://storage.perlig.de/cdbx/cdbx-0.2.3.zip>`_
-    - `cdbx-0.2.3.digests <http://storage.perlig.de/cdbx/cdbx-0.2.3.digests>`_
+    - `CHANGES file <http://storage.perlig.de/cdbx/CHANGES-0.2.4>`_
+    - `cdbx-0.2.4.tar.xz <http://storage.perlig.de/cdbx/cdbx-0.2.4.tar.xz>`_
+    - `cdbx-0.2.4.tar.bz2 <http://storage.perlig.de/cdbx/cdbx-0.2.4.tar.bz2>`_
+    - `cdbx-0.2.4.tar.gz <http://storage.perlig.de/cdbx/cdbx-0.2.4.tar.gz>`_
+    - `cdbx-0.2.4.zip <http://storage.perlig.de/cdbx/cdbx-0.2.4.zip>`_
+    - `cdbx-0.2.4.digests <http://storage.perlig.de/cdbx/cdbx-0.2.4.digests>`_
 
     .. end stable
 
@@ -26,17 +26,17 @@ Integrity Check
 
 There are hashes (MD5, SHA1 and SHA256) of the download packages stored
 in the `digests file
-<http://storage.perlig.de/cdbx/cdbx-0.2.3.digests>`_\.
+<http://storage.perlig.de/cdbx/cdbx-0.2.4.digests>`_\.
 In order to check the integrity of the downloaded file, use a tool like
 md5sum (or sha1sum, sha256sum accordingly), e.g.:
 
 .. sourcecode:: console
 
-    $ md5sum -c cdbx-0.2.3.digests
-    cdbx-0.2.3.tar.bz2: OK
-    cdbx-0.2.3.tar.gz: OK
-    cdbx-0.2.3.tar.xz: OK
-    cdbx-0.2.3.zip: OK
+    $ md5sum -c cdbx-0.2.4.digests
+    cdbx-0.2.4.tar.bz2: OK
+    cdbx-0.2.4.tar.gz: OK
+    cdbx-0.2.4.tar.xz: OK
+    cdbx-0.2.4.zip: OK
 
 In order to check the integrity of the digest file itself, you can check
 the PGP signature of that file. The file is signed by André Malo, Key-ID
@@ -44,7 +44,7 @@ the PGP signature of that file. The file is signed by André Malo, Key-ID
 
 .. sourcecode:: console
 
-    $ gpg --verify cdbx-0.2.3.digests
+    $ gpg --verify cdbx-0.2.4.digests
     gpg: Signature made Tue Oct  3 14:20:56 2023 CEST
     gpg:                using RSA key 21B65583FF640D34E8662B6B3DED446369F2EE1A
     gpg: Good signature from "André Malo <nd@perlig.de>"
