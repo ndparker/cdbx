@@ -1,4 +1,4 @@
-# pylint-version: 3.0
+# pylint-version: 3.3
 
 [MAIN]
 
@@ -66,10 +66,11 @@ ignore-paths=
 # Emacs file locks
 ignore-patterns=
 
-# List of module names for which member attributes should not be checked
-# (useful for modules/projects where namespaces are manipulated during runtime
-# and thus existing member attributes cannot be deduced by static analysis). It
-# supports qualified module names, as well as Unix pattern matching.
+# List of module names for which member attributes should not be checked and
+# will not be imported (useful for modules/projects where namespaces are
+# manipulated during runtime and thus existing member attributes cannot be
+# deduced by static analysis). It supports qualified module names, as well as
+# Unix pattern matching.
 ignored-modules=
 
 # Python code to execute, usually for sys.path manipulation such as
@@ -93,9 +94,13 @@ load-plugins=
 # Pickle collected data for later comparisons.
 persistent=no
 
+# Resolve imports to .pyi stubs if available. May reduce no-member messages and
+# increase not-an-iterable messages.
+prefer-stubs=no
+
 # Minimum Python version to use for version dependent checks. Will default to
 # the version used to run pylint.
-# py-version=3.12
+# py-version=3.13
 
 # Discover python modules and packages in the file system subtree.
 recursive=no
@@ -144,6 +149,7 @@ disable=
     consider-using-f-string,
     use-dict-literal,
     unnecessary-lambda-assignment,
+
     redundant-u-string-prefix,
 
 
@@ -353,6 +359,10 @@ max-locals=15
 # Maximum number of parents for a class (see R0901).
 max-parents=7
 
+# Maximum number of positional arguments for function / method.
+max-positional-arguments=5
+
+
 # Maximum number of public methods for a class (see R0904).
 max-public-methods=20
 
@@ -396,8 +406,7 @@ indent-string='    '
 max-line-length=78
 
 # Maximum number of lines in a module.
-max-module-lines=
-    1500
+max-module-lines=1500
 
 
 # Allow the body of a class to be on the same line as the declaration if body
@@ -490,6 +499,11 @@ max-nested-blocks=5
 # it will be considered as an explicit return statement and no message will be
 # printed.
 never-returning-functions=sys.exit
+
+# Let 'consider-using-join' be raised when the separator to join on would be
+# non-empty (resulting in expected fixes of the type: ``"- " + " -
+# ".join(items)``)
+suggest-join-with-non-empty-separator=yes
 
 
 [REPORTS]
