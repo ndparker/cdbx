@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2016 - 2024
+ Copyright 2016 - 2025
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -40,7 +40,7 @@ import cdbx as _cdbx
 def test_closed():
     """bail if closed"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
-    make.add('foo', 'bar')
+    make.add("foo", "bar")
     cdb = make.commit()
 
     obj = cdb.items()
@@ -55,12 +55,12 @@ def test_closed():
 def test_weakref():
     """weakref handling"""
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
-    make.add('foo', 'bar')
+    make.add("foo", "bar")
     cdb = make.commit()
 
     obj = iter(cdb)
     proxy = _weakref.proxy(obj)
-    assert list(proxy) == [b'foo']
+    assert list(proxy) == [b"foo"]
     assert list(proxy) == []
     del obj
 

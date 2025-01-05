@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2021 - 2024
+ Copyright 2021 - 2025
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -41,12 +41,12 @@ import cdbx as _cdbx
 
 def fix_path(name):
     """Find fixture"""
-    return _os.path.join(_os.path.dirname(__file__), 'fixtures', name)
+    return _os.path.join(_os.path.dirname(__file__), "fixtures", name)
 
 
 def fix(name):
     """Load fixture"""
-    with open(fix_path(name), 'rb') as fp:
+    with open(fix_path(name), "rb") as fp:
         return fp.read()
 
 
@@ -81,7 +81,7 @@ def test_commit_args():
         _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     ) as make:
         with raises(TypeError):
-            make.commit(lah='luh')
+            make.commit(lah="luh")
 
 
 def test_add_args():
@@ -90,13 +90,13 @@ def test_add_args():
         _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     ) as make:
         with raises(TypeError):
-            make.add(lah='luh')
+            make.add(lah="luh")
 
         with raises(TypeError):
             make.add(object(), object())
 
         with raises(IOError):
-            make.add('doh', 'duh')
+            make.add("doh", "duh")
 
 
 def test_fileno():
@@ -110,14 +110,14 @@ def test_fd():
     """fd handling"""
     with _tempfile.TemporaryFile() as fp:
         make = _cdbx.CDB.make(fp.fileno())
-        make.add('foo', 'bar')
+        make.add("foo", "bar")
         cdb = make.commit()
 
-    assert cdb['foo'] == b'bar'
+    assert cdb["foo"] == b"bar"
     cdb.close()
 
     with raises(IOError):
-        cdb['foo']
+        cdb["foo"]
 
     fp = _tempfile.TemporaryFile()
     _cdbx.CDB.make(fp.fileno(), close=True).close()
@@ -127,7 +127,7 @@ def test_fd():
 
 def test_filename(tmpdir):
     """filename handling"""
-    fname = _os.path.join(str(tmpdir), 'foo.cdb')
+    fname = _os.path.join(str(tmpdir), "foo.cdb")
     make = _cdbx.CDB.make(fname)
 
     assert _os.path.isfile(fname)
@@ -146,12 +146,12 @@ def test_weakref():
     make = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True)
     proxy = _weakref.proxy(make)
 
-    proxy.add('foo', 'bar')
+    proxy.add("foo", "bar")
     proxy.close()
 
     with raises(IOError):
-        proxy.add('baz', 'zopp')
+        proxy.add("baz", "zopp")
 
     del make
     with raises(ReferenceError):
-        proxy.add('duh', 'dah')
+        proxy.add("duh", "dah")

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: ascii -*-
 #
-# Copyright 2016 - 2024
+# Copyright 2016 - 2025
 # Andr\xe9 Malo or his licensors, as applicable
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,9 +29,9 @@ if bytes is not str:
     fp = fp.buffer  # pylint: disable = no-member
 
 for j in range(int(_sys.argv[1])):
-    klen = ord(_os.urandom(1).decode('latin-1'))
-    vlen = ord(_os.urandom(1).decode('latin-1')) << 8 | ord(
-        _os.urandom(1).decode('latin-1')
+    klen = ord(_os.urandom(1).decode("latin-1"))
+    vlen = ord(_os.urandom(1).decode("latin-1")) << 8 | ord(
+        _os.urandom(1).decode("latin-1")
     )
     fp.write(
         (
@@ -39,9 +39,9 @@ for j in range(int(_sys.argv[1])):
             % (
                 klen,
                 vlen,
-                _os.urandom(klen).decode('latin-1'),
-                _os.urandom(vlen).decode('latin-1'),
+                _os.urandom(klen).decode("latin-1"),
+                _os.urandom(vlen).decode("latin-1"),
             )
-        ).encode('latin-1')
+        ).encode("latin-1")
     )
 fp.write(b"\n")

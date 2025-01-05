@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2016 - 2024
+ Copyright 2016 - 2025
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -27,8 +27,8 @@ CDBx - CDB reimplementation for Python.
 """
 __author__ = u"Andr\xe9 Malo"
 __license__ = "Apache License, Version 2.0"
-__version__ = '0.2.4'
-__all__ = ['CDB', 'CDBMaker']
+__version__ = "0.2.4"
+__all__ = ["CDB", "CDBMaker"]
 
 try:
     from cdbx._cdb import __version__ as _c_version

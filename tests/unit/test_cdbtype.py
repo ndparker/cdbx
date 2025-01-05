@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2016 - 2024
+ Copyright 2016 - 2025
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -44,12 +44,12 @@ from .. import _util as _test
 
 def fix_path(name):
     """Find fixture"""
-    return _os.path.join(_os.path.dirname(__file__), 'fixtures', name)
+    return _os.path.join(_os.path.dirname(__file__), "fixtures", name)
 
 
 def fix(name):
     """Load fixture"""
-    with open(fix_path(name), 'rb') as fp:
+    with open(fix_path(name), "rb") as fp:
         return fp.read()
 
 
@@ -59,13 +59,13 @@ def test_closed():
     cdb.close()
 
     with raises(IOError):
-        cdb['foo']
+        cdb["foo"]
 
     with raises(IOError):
-        cdb.get('bar')
+        cdb.get("bar")
 
     with raises(IOError):
-        cdb.items('baz')
+        cdb.items("baz")
 
     with raises(IOError):
         cdb.keys()
@@ -80,10 +80,10 @@ def test_closed():
         cdb.fileno()
 
     with raises(IOError):
-        'foo' in cdb
+        "foo" in cdb
 
     with raises(IOError):
-        cdb.__contains__('foo')
+        cdb.__contains__("foo")
 
     cdb.close()  # noop
 
@@ -94,11 +94,11 @@ def test_get_args():
         _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     ) as cdb:
         with raises(TypeError):
-            cdb.get(nope='wrong')
+            cdb.get(nope="wrong")
 
         with raises(RuntimeError) as e:
-            cdb.get('foo', all=_test.badbool)
-        assert e.value.args == ('yoyo',)
+            cdb.get("foo", all=_test.badbool)
+        assert e.value.args == ("yoyo",)
 
 
 def test_items_args():
@@ -107,11 +107,11 @@ def test_items_args():
         _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     ) as cdb:
         with raises(TypeError):
-            cdb.items(nope='wrong')
+            cdb.items(nope="wrong")
 
         with raises(RuntimeError) as e:
             cdb.items(all=_test.badbool)
-        assert e.value.args == ('yoyo',)
+        assert e.value.args == ("yoyo",)
 
 
 def test_keys_args():
@@ -120,39 +120,39 @@ def test_keys_args():
         _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     ) as cdb:
         with raises(TypeError):
-            cdb.keys(nope='wrong')
+            cdb.keys(nope="wrong")
 
         with raises(RuntimeError) as e:
             cdb.keys(all=_test.badbool)
-        assert e.value.args == ('yoyo',)
+        assert e.value.args == ("yoyo",)
 
 
 def test_make_args():
     """make() args error handling"""
     with raises(TypeError):
-        _cdbx.CDB.make(duh='dah')
+        _cdbx.CDB.make(duh="dah")
 
     with raises(RuntimeError) as e:
         _cdbx.CDB.make(12, close=_test.badbool)
-    assert e.value.args == ('yoyo',)
+    assert e.value.args == ("yoyo",)
 
     with raises(RuntimeError) as e:
         _cdbx.CDB.make(12, mmap=_test.badbool)
-    assert e.value.args == ('yoyo',)
+    assert e.value.args == ("yoyo",)
 
 
 def test_new_args():
     """__new__() args error handling"""
     with raises(TypeError):
-        _cdbx.CDB(duh='dah')
+        _cdbx.CDB(duh="dah")
 
     with raises(RuntimeError) as e:
         _cdbx.CDB(12, close=_test.badbool)
-    assert e.value.args == ('yoyo',)
+    assert e.value.args == ("yoyo",)
 
     with raises(RuntimeError) as e:
         _cdbx.CDB(12, mmap=_test.badbool)
-    assert e.value.args == ('yoyo',)
+    assert e.value.args == ("yoyo",)
 
     with raises(OverflowError):
         _cdbx.CDB(-3)
@@ -178,7 +178,7 @@ def test_getitem_badstring():
             cdb[object()]
 
         with raises(ValueError):
-            cdb[u'Андрей']
+            cdb[u"Андрей"]
 
 
 def test_contains_badstring():
@@ -191,7 +191,7 @@ def test_contains_badstring():
             object() in cdb
 
         with raises(ValueError):
-            u'Андрей' in cdb
+            u"Андрей" in cdb
 
 
 def test_new_badfile():
@@ -204,15 +204,15 @@ def test_fd():
     """fd handling"""
     fp = _tempfile.TemporaryFile()
     make = _cdbx.CDB.make(fp)
-    make.add('foo', 'bar')
+    make.add("foo", "bar")
     make.commit()
 
     cdb = _cdbx.CDB(fp.fileno())
-    assert cdb['foo'] == b'bar'
+    assert cdb["foo"] == b"bar"
     cdb.close()
 
     with raises(IOError):
-        cdb['foo']
+        cdb["foo"]
 
     _cdbx.CDB(fp.fileno(), close=True).close()
     with raises(IOError):
@@ -237,14 +237,14 @@ def test_bad_mmap():
             """well..."""
             raise RuntimeError("Huh")
 
-    with _test.patched_import('mmap', Fake()):
+    with _test.patched_import("mmap", Fake()):
         fp = _tempfile.TemporaryFile()
         try:
             _cdbx.CDB.make(fp).commit()
 
             with raises(RuntimeError) as e:
                 _cdbx.CDB(fp, mmap=True)
-            assert e.value.args == ('Huh',)
+            assert e.value.args == ("Huh",)
 
             _cdbx.CDB(fp, mmap=None).close()
         finally:
@@ -253,7 +253,7 @@ def test_bad_mmap():
 
 def test_new_filename(tmpdir):
     """__new__() filename handling"""
-    fname = _os.path.join(str(tmpdir), 'cdbtype_new_filename.cdb')
+    fname = _os.path.join(str(tmpdir), "cdbtype_new_filename.cdb")
     cdb = _cdbx.CDB.make(fname).commit()
 
     assert _os.path.isfile(fname)
@@ -274,12 +274,12 @@ def test_weakref():
     cdb = _cdbx.CDB.make(_tempfile.TemporaryFile(), close=True).commit()
     proxy = _weakref.proxy(cdb)
 
-    assert 'foo' not in proxy
+    assert "foo" not in proxy
     cdb.close()
 
     with raises(IOError):
-        'foo' not in proxy
+        "foo" not in proxy
 
     del cdb
     with raises(ReferenceError):
-        'foo' not in proxy
+        "foo" not in proxy
