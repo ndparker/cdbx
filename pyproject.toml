@@ -23,7 +23,7 @@ legacy_tox_ini = """
 skip_missing_interpreters = True
 skipsdist = True
 envlist =
-    {py27,py36,py37,py38,py39,py310,py311,py312,py313}
+    py{27,36,37,38,39,310,311,312,313}
     cov-report
 
 [testenv]
@@ -40,12 +40,7 @@ passenv =
     LDFLAGS
     PKG_CONFIG_PATH
 commands =
-    py.test -vv -s \
-        --cov=cdbx \
-        --cov-report= \
-        --no-cov-on-fail \
-        --doctest-modules --color=yes \
-        tests
+    inv test.local --coverage --no-coverage-report
 
 [testenv:cov-report]
 deps = -rtests/coverage.txt
@@ -66,6 +61,7 @@ commands =
 # Pytest
 # =======================================
 [tool.pytest.ini_options]
+junit_family = "xunit2"
 doctest_optionflags = "IGNORE_EXCEPTION_DETAIL ALLOW_UNICODE ALLOW_BYTES ELLIPSIS"
 filterwarnings = [
     "error",
@@ -121,12 +117,12 @@ line-length = 78
 include='''
 (
     cdbx/.*\.py
-    tests/.*\.py
+|   tests/.*\.py
 |   tasks/.*\.py
 )$
 '''
 extend-exclude='''
-    tasks/_shell.py
+    tasks/_inv/shell.py
 '''
 
 # vim: nowrap
