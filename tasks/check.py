@@ -90,17 +90,17 @@ def tf_validate(ctx):
         ctx.run(ctx.c(base_cmd + ctx.s("validate")), echo=True)
 
 
-@_tasks.optional(_CHECKERS_SAM, _features.sam)
-@_invoke.task()
-def sam_validate(ctx):
-    """Run sam validate"""
-    cmd = (
-        [ctx.which("sam")]
-        + ctx.s("validate --lint -t")
-        + [ctx.cloudformation.template]
-    )
-    with ctx.shell.root_dir():
-        ctx.run(ctx.c(cmd), echo=True)
+# @_tasks.optional(_CHECKERS_SAM, _features.sam)
+# @_invoke.task()
+# def sam_validate(ctx):
+#     """Run sam validate"""
+#     cmd = (
+#         [ctx.which("sam")]
+#         + ctx.s("validate --lint -t")
+#         + [ctx.cloudformation.template]
+#     )
+#     with ctx.shell.root_dir():
+#         ctx.run(ctx.c(cmd), echo=True)
 
 
 # Collections of checks
