@@ -143,6 +143,6 @@ def sam(ctx):
       bool: is sam enabled?
     """
     if _shell.frompath("sam") is not None:
-        path = ctx.get("cloudformation", {}).get("template")
+        path = ctx.paths.get("cloudformation")
         return path and _os.path.exists(_shell.native(path))
     return False
