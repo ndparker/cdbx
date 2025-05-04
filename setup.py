@@ -57,7 +57,7 @@ package = dict(
     author=__author__,
     email="nd@perlig.de",
     url="https://opensource.perlig.de/cdbx/",
-    license="Apache License, Version 2.0",
+    license="Apache-2.0",
     license_files=["LICENSE"],
 
     packages=True,
@@ -70,7 +70,6 @@ package = dict(
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
-        "License :: OSI Approved",
         "Operating System :: OS Independent",
         "Operating System :: POSIX",
         "Programming Language :: C",

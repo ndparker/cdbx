@@ -27,11 +27,11 @@ Tests for cdbx.CDB
 """
 __author__ = u"Andr\xe9 Malo"
 
-from contextlib import closing
 import os as _os
 import sys as _sys
 import tempfile as _tempfile
 import weakref as _weakref
+from contextlib import closing
 
 from pytest import raises
 

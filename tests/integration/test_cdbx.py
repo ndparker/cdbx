@@ -38,7 +38,8 @@ else:
     mmap_param = [-1, None, False, True]
     del _mmap
 
-from pytest import raises, mark
+from pytest import mark
+from pytest import raises
 
 import cdbx as _cdbx
 

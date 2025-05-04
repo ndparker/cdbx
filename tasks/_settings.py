@@ -1,4 +1,4 @@
-# -*- encoding: ascii -*-
+# -*- coding: ascii -*-
 """
 Project Settings
 ~~~~~~~~~~~~~~~~
@@ -15,8 +15,8 @@ settings = dict(
         build="binary",
         specs={
             "aarch64": {
-                "36": dict(manylinux="2014", musllinux="1_1"),
-                "37": dict(manylinux="2014", musllinux="1_1"),
+                "36": dict(manylinux="2014:2025.05.03-1", musllinux="1_1"),
+                "37": dict(manylinux="2014:2025.05.03-1", musllinux="1_1"),
                 "38": dict(manylinux="2014", musllinux="1_1"),
                 "39": dict(manylinux="2014", musllinux="1_1"),
                 "310": dict(manylinux="2014", musllinux="1_1"),

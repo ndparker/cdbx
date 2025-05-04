@@ -42,4 +42,5 @@ if _c_version != __version__:
 del _c_version
 
 # pylint: disable = wrong-import-position
-from cdbx._cdb import CDB, CDBMaker
+from cdbx._cdb import CDB
+from cdbx._cdb import CDBMaker
