@@ -1,8 +1,8 @@
 # -*- coding: ascii -*-
-u"""
+"""
 :Copyright:
 
- Copyright 2016 - 2025
+ Copyright 2016 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,7 +25,8 @@ u"""
 
 Tests for CDB iterator type.
 """
-__author__ = u"Andr\xe9 Malo"
+
+__author__ = "Andr\xe9 Malo"
 
 import tempfile as _tempfile
 import weakref as _weakref

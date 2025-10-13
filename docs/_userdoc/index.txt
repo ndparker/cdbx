@@ -1,5 +1,5 @@
 .. license:
-    Copyright 2016 - 2025
+    Copyright 2016 - 2026
     André Malo or his licensors, as applicable
 
     Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,7 +22,7 @@
 |**cdbx**| is a `CDB <https://cr.yp.to/cdb.html>`_ reimplementation for
 Python.
 
-Supported python versions are Python 2.7 and Python 3.6+.
+Supported python versions are Python Python 3.6+.
 
 
 Documentation
