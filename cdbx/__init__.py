@@ -1,8 +1,8 @@
 # -*- coding: ascii -*-
-u"""
+"""
 :Copyright:
 
- Copyright 2016 - 2025
+ Copyright 2016 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,7 +25,8 @@ u"""
 
 CDBx - CDB reimplementation for Python.
 """
-__author__ = u"Andr\xe9 Malo"
+
+__author__ = "Andr\xe9 Malo"
 __license__ = "Apache License, Version 2.0"
 __version__ = "0.2.6"
 __all__ = ["CDB", "CDBMaker"]

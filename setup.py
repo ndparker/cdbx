@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: ascii -*-
-u"""
+"""
 :Copyright:
 
- Copyright 2011 - 2025
+ Copyright 2011 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -26,7 +26,8 @@ u"""
 
 CDBx - CDB reimplementation for Python.
 """
-__author__ = u"Andr\xe9 Malo"
+
+__author__ = "Andr\xe9 Malo"
 
 import os as _os
 import posixpath as _posixpath
@@ -74,8 +75,6 @@ package = dict(
         "Operating System :: POSIX",
         "Programming Language :: C",
         "Programming Language :: Python",
-        "Programming Language :: Python :: 2",
-        "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
@@ -86,6 +85,7 @@ package = dict(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
         "Programming Language :: Python :: 3.14",
+        "Programming Language :: Python :: 3.15",
         "Programming Language :: Python :: Implementation :: CPython",
         "Topic :: Database",
         "Topic :: Software Development :: Libraries",
@@ -95,7 +95,7 @@ package = dict(
 
 
 class BuildFailed(Exception):
-    """ The build has failed """
+    """The build has failed"""
 
 
 from distutils.command import build_ext as _build_ext  # pylint: disable = wrong-import-order

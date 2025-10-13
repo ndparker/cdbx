@@ -1,8 +1,8 @@
 # -*- coding: ascii -*-
-u"""
+"""
 :Copyright:
 
- Copyright 2016 - 2025
+ Copyright 2016 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,7 +25,8 @@ u"""
 
 cdbx Integration Tests.
 """
-__author__ = u"Andr\xe9 Malo"
+
+__author__ = "Andr\xe9 Malo"
 
 # enable to disable integration tests:
 if 0:  # pylint: disable = using-constant-test
