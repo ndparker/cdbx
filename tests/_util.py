@@ -2,7 +2,7 @@
 u"""
 :Copyright:
 
- Copyright 2014 - 2025
+ Copyright 2014 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,6 +25,7 @@ u"""
 
 Test utilities.
 """
+
 __author__ = u"Andr\xe9 Malo"
 
 import contextlib as _contextlib
