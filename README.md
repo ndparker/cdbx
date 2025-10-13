@@ -28,7 +28,7 @@ Beta.
 
 ## COPYRIGHT AND LICENSE
 
-Copyright 2016 - 2025
+Copyright 2016 - 2026
 André Malo or his licensors, as applicable.
 
 The whole package is distributed under the Apache License Version 2.0.
@@ -38,7 +38,7 @@ at: <http://www.apache.org/licenses/LICENSE-2.0>.
 
 ## SYSTEM REQUIREMENTS
 
-Supported python versions are 2.7 and 3.6+.
+Supported python versions are 3.6+.
 
 You also need a build environment for python C extensions (i.e. a compiler
 and the python development files).

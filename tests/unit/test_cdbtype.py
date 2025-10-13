@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-u"""
+"""
 :Copyright:
 
- Copyright 2016 - 2025
+ Copyright 2016 - 2026
  Andr\xe9 Malo or his licensors, as applicable
 
 :License:
@@ -25,7 +25,8 @@ u"""
 
 Tests for cdbx.CDB
 """
-__author__ = u"Andr\xe9 Malo"
+
+__author__ = "Andr\xe9 Malo"
 
 import os as _os
 import sys as _sys
@@ -178,7 +179,7 @@ def test_getitem_badstring():
             cdb[object()]
 
         with raises(ValueError):
-            cdb[u"Андрей"]
+            cdb["Андрей"]
 
 
 def test_contains_badstring():
@@ -191,7 +192,7 @@ def test_contains_badstring():
             object() in cdb
 
         with raises(ValueError):
-            u"Андрей" in cdb
+            "Андрей" in cdb
 
 
 def test_new_badfile():
