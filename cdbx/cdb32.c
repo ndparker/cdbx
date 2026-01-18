@@ -886,6 +886,7 @@ cdb32_mmap(cdbx_cdb32_t *self)
         self->map_buf = view.buf;
         self->map_size = view.len;
         self->map = tmp;
+        PyBuffer_Release(&view);
     }
 #endif
     self->map_pointer = self->map_buf;
