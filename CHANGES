@@ -1,5 +1,9 @@
 Changes with version 0.3.x
 
+ *) Fix file descriptor leak when using mmap (reported by bartku, PR #2)
+
+ *) Close the memory map explicitly on close()
+
  *) Add support for Python 3.15
 
  *) Drop support for Python 2.7

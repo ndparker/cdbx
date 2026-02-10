@@ -77,8 +77,13 @@ cdbx_cdb32_create(int, cdbx_cdb32_t **, int);
 
 /*
  * Destroy cdbx_cdb32_t instance
+ *
+ * The instance is always destroyed, even on error.
+ *
+ * Return -1 on error
+ * Return 0 on success
  */
-EXT_LOCAL void
+EXT_LOCAL int
 cdbx_cdb32_destroy(cdbx_cdb32_t **);
 
 
