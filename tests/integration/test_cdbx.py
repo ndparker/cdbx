@@ -59,6 +59,18 @@ def fix(name):
 
 
 @mark.parametrize("mmap", mmap_param)
+def test_close(mmap):
+    """CDB is closed properly"""
+    kwargs = {} if mmap == -1 else {"mmap": mmap}
+
+    cdb = _cdbx.CDB(fix_path("empty.cdb"), **kwargs)
+    try:
+        assert len(cdb) == 0
+    finally:
+        cdb.close()
+
+
+@mark.parametrize("mmap", mmap_param)
 def test_empty(mmap):
     """Create minimum number of keys"""
     kwargs = {} if mmap == -1 else {"mmap": mmap}
