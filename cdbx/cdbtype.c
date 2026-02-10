@@ -355,11 +355,13 @@ static PyObject *
 CDBType_close(cdbtype_t *self)
 {
     PyObject *fp, *result;
-    int fd = -1;
+    int fd = -1, res = 0;
 
     if (self->cdb32) {
         fd = cdbx_cdb32_fileno(self->cdb32);
-        cdbx_cdb32_destroy(&self->cdb32);
+
+        /* Continue on error - the file still needs to be closed. */
+        res = cdbx_cdb32_destroy(&self->cdb32);
     }
 
     if ((fp = self->fp)) {
@@ -380,6 +382,9 @@ CDBType_close(cdbtype_t *self)
         if ((close(fd) < 0) && errno != EINTR)
             return PyErr_SetFromErrno(PyExc_OSError);
     }
+
+    if (-1 == res)
+        LCOV_EXCL_LINE_RETURN(NULL);
 
     Py_RETURN_NONE;
 }

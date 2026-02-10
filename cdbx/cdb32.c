@@ -886,6 +886,7 @@ cdb32_mmap(cdbx_cdb32_t *self)
         self->map_buf = view.buf;
         self->map_size = view.len;
         self->map = tmp;
+        PyBuffer_Release(&view);
     }
 #endif
     self->map_pointer = self->map_buf;
@@ -1064,18 +1065,39 @@ cdbx_cdb32_create(int fd, cdbx_cdb32_t **cdb32_, int mmap)
 
 /*
  * Destroy cdbx_cdb32_t instance
+ *
+ * The instance is always destroyed, even on error.
+ *
+ * Return -1 on error
+ * Return 0 on success
  */
-EXT_LOCAL void
+EXT_LOCAL int
 cdbx_cdb32_destroy(cdbx_cdb32_t **cdb32_)
 {
     cdbx_cdb32_t *self;
+    PyObject *map, *tmp;
+    int res = 0;
 
     if (cdb32_ && (self = *cdb32_)) {
         *cdb32_ = NULL;
 
-        Py_CLEAR(self->map);
+        if ((map = self->map)) {
+            self->map = NULL;
+            self->map_buf = NULL;
+            self->map_pointer = NULL;
+            self->map_size = 0;
+
+            if (!(tmp = PyObject_CallMethod(map, "close", "")))
+                res = -1;  /* LCOV_EXCL_LINE */
+            else
+                Py_DECREF(tmp);
+
+            Py_DECREF(map);
+        }
         PyMem_Free(self);
     }
+
+    return res;
 }
 
 

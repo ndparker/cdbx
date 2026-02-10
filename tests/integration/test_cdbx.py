@@ -59,6 +59,36 @@ def fix(name):
 
 
 @mark.parametrize("mmap", mmap_param)
+def test_close(mmap):
+    """CDB is closed properly"""
+    kwargs = {} if mmap == -1 else {"mmap": mmap}
+
+    cdb = _cdbx.CDB(fix_path("empty.cdb"), **kwargs)
+    try:
+        assert len(cdb) == 0
+    finally:
+        cdb.close()
+
+
+@mark.parametrize("mmap", mmap_param)
+def test_close_made(mmap):
+    """CDB created by the maker is closed properly"""
+    kwargs = {} if mmap == -1 else {"mmap": mmap}
+
+    fp = _tempfile.TemporaryFile()
+    try:
+        maker = _cdbx.CDB.make(fp, **kwargs)
+        maker.add(b"key", b"value")
+        cdb = maker.commit()
+        try:
+            assert len(cdb) == 1
+        finally:
+            cdb.close()
+    finally:
+        fp.close()
+
+
+@mark.parametrize("mmap", mmap_param)
 def test_empty(mmap):
     """Create minimum number of keys"""
     kwargs = {} if mmap == -1 else {"mmap": mmap}
